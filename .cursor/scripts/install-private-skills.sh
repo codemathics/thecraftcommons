@@ -15,15 +15,21 @@ TMP="$(mktemp -d)"
 cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT
 
+# Cloud Agent VMs ship a global ~/.gitconfig with url.<...>.insteadOf rules that
+# rewrite git@github.com:/ssh://git@github.com/ (and even plain https://github.com/)
+# to https://x-access-token:<cloud-token>@github.com/. That silently hijacks the
+# explicit deploy-key/PAT auth below and points it at the wrong credential, which
+# fails with "Repository not found" for a separate private repo. Neutralize the
+# ambient global config for these clones so our explicit auth is honored.
 clone_via_ssh() {
   local key_file="$1"
   chmod 600 "$key_file"
   export GIT_SSH_COMMAND="ssh -i ${key_file} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
-  git clone --depth 1 "git@github.com:${REPO_SLUG}.git" "$TMP/skills"
+  GIT_CONFIG_GLOBAL=/dev/null git clone --depth 1 "git@github.com:${REPO_SLUG}.git" "$TMP/skills"
 }
 
 clone_via_https_token() {
-  git clone --depth 1 \
+  GIT_CONFIG_GLOBAL=/dev/null git clone --depth 1 \
     "https://x-access-token:${PERSONAL_SKILLS_TOKEN}@github.com/${REPO_SLUG}.git" \
     "$TMP/skills"
 }
