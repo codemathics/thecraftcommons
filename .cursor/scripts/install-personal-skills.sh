@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Idempotent: copy repo skills into the cloud VM home so they are available
-# as user-level skills (~/.cursor/skills) across repos in this environment.
+# Idempotent: copy public repo skills into the cloud VM home (~/.cursor/skills).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -21,7 +20,7 @@ for skill_dir in "$SRC"/*/SKILL.md; do
   mkdir -p "$DEST/$name"
   cp -f "$skill_dir" "$DEST/$name/SKILL.md"
   copied=$((copied + 1))
-  echo "installed skill: $name -> $DEST/$name/SKILL.md"
+  echo "installed public skill: $name -> $DEST/$name/SKILL.md"
 done
 
 if [[ "$copied" -eq 0 ]]; then
@@ -29,4 +28,4 @@ if [[ "$copied" -eq 0 ]]; then
   exit 1
 fi
 
-echo "install-personal-skills: done ($copied skills -> $DEST)"
+echo "install-personal-skills: done ($copied public skills -> $DEST)"
