@@ -896,3 +896,136 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Admin nav, insights, cohort ---------- */
+
+.admin__nav {
+  gap: 0.4rem;
+}
+
+.admin__nav .chip {
+  text-decoration: none;
+}
+
+.admin__count {
+  margin-bottom: 1.4rem;
+}
+
+.admin__decision {
+  border-top: 1px solid rgba(12, 11, 9, 0.12);
+  padding-top: 1.4rem;
+}
+
+.insights__head,
+.cohort .insights__head {
+  margin-bottom: 2.4rem;
+}
+
+.insights__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1.5rem, 5vw, 3.5rem);
+  margin-top: 1.4rem;
+}
+
+.insights__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.insights__stat-value {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1;
+}
+
+.insights__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr));
+  gap: clamp(1.2rem, 3vw, 2rem);
+}
+
+.insight {
+  border: 1px solid rgba(12, 11, 9, 0.15);
+  border-radius: 16px;
+  padding: clamp(1.1rem, 2.5vw, 1.6rem);
+}
+
+.insight__head {
+  margin-bottom: 1.1rem;
+}
+
+.insight__title {
+  font-size: 1.05rem;
+  font-weight: 400;
+  margin: 0 0 0.2rem;
+}
+
+.insight__bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.insight__bar {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.9rem;
+}
+
+.insight__bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.insight__bar-track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: rgba(12, 11, 9, 0.08);
+  overflow: hidden;
+}
+
+.insight__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ink);
+}
+
+.insight__bar-value {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+
+.cohort__list {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.cohort__chips {
+  margin-top: 0.8rem;
+}
+
+.cohort__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 1.4rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(12, 11, 9, 0.12);
+}
+
+.cohort__fields .field__label {
+  margin-top: 0.8rem;
+}
+
+.cohort__fields .home__cta {
+  margin-top: 1.4rem;
+  align-self: flex-start;
+}

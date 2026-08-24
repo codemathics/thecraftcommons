@@ -1,6 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../integrations/supabase/client";
+import AdminInsights from "./AdminInsights.tsx";
+import AdminCohort from "./AdminCohort.tsx";
+
+type AdminPage = "review" | "insights" | "cohort";
+
+function currentPage(): AdminPage {
+  const path = window.location.pathname.replace(/\/$/, "");
+  if (path === "/admin/insights") return "insights";
+  if (path === "/admin/cohort") return "cohort";
+  return "review";
+}
+
 
 type AdminApplication = {
   id: string;
@@ -29,9 +41,21 @@ type AdminApplication = {
   my_commitment_readiness: number | null;
   my_notes: string | null;
   my_reviewed_at: string | null;
+  review_count: number;
+  admin_count: number;
+  fully_reviewed: boolean;
 };
 
+const STATUSES = [
+  "submitted",
+  "reviewed",
+  "selected",
+  "waitlist",
+  "declined",
+] as const;
+
 const RUBRIC = [
+
   {
     key: "ambition",
     label: "Ambition",
@@ -154,7 +178,60 @@ function Tags({ items, other }: { items: string[]; other?: string | null }) {
   );
 }
 
+function StatusControl({
+  app,
+  onChanged,
+}: {
+  app: AdminApplication;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  const set = async (status: string) => {
+    if (status === app.status) return;
+    setBusy(status);
+    setError("");
+    const { error } = await supabase.rpc("set_application_status", {
+      _application_id: app.id,
+      _status: status,
+    });
+    setBusy(null);
+    if (error) {
+      setError("Couldn't change the status. Try again in a moment.");
+      return;
+    }
+    onChanged();
+  };
+
+  return (
+    <div className="admin__score admin__decision">
+      <p className="field__label">Decision</p>
+      <p className="field__hint">
+        Both reviewers have scored this application ({app.review_count} of{" "}
+        {Math.max(app.admin_count, 2)}). Selecting them opens a cohort record.
+      </p>
+      <div className="chips">
+        {STATUSES.map((s) => (
+          <button
+            type="button"
+            key={s}
+            disabled={busy !== null}
+            aria-pressed={app.status === s}
+            className={`chip ${app.status === s ? "chip--selected" : ""}`}
+            onClick={() => set(s)}
+          >
+            {busy === s ? "…" : s}
+          </button>
+        ))}
+      </div>
+      {error && <p className="apply__incomplete">{error}</p>}
+    </div>
+  );
+}
+
 function ReviewCard({
+
   app,
   onSaved,
 }: {
@@ -318,7 +395,12 @@ function ReviewCard({
             {saving ? "Saving…" : "Save scores & reveal"}
           </button>
         )}
+
+        {app.fully_reviewed && (
+          <StatusControl app={app} onChanged={onSaved} />
+        )}
       </div>
+
     </article>
   );
 }
@@ -355,11 +437,11 @@ function Console({ session }: { session: Session }) {
   const list = tab === "queue" ? queue : done;
   const active = apps.find((a) => a.id === activeId) ?? null;
 
-  if (loading) return <p className="admin__note admin__inner">Loading…</p>;
+  if (loading) return <p className="admin__note">Loading…</p>;
 
   if (denied)
     return (
-      <div className="admin__inner admin__inner--narrow">
+      <div>
         <h1 className="admin__title">No reviewer access</h1>
         <p className="admin__note">
           This account isn't on the reviewer list.{" "}
@@ -374,18 +456,14 @@ function Console({ session }: { session: Session }) {
     );
 
   return (
-    <div className="admin__inner">
-      <div className="apply__top">
-        <p className="step__eyebrow">
-          {session.user.email} · {queue.length} to score
-        </p>
-        <button className="apply__back" onClick={() => supabase.auth.signOut()}>
-          Sign out
-        </button>
-      </div>
+    <>
+      <p className="step__eyebrow admin__count">
+        {session.user.email} · {queue.length} to score
+      </p>
 
       <div className="admin__layout">
         <aside className="admin__queue">
+
           <div className="chips admin__tabs">
             <button
               className={`chip ${tab === "queue" ? "chip--selected" : ""}`}
@@ -436,13 +514,21 @@ function Console({ session }: { session: Session }) {
           )}
         </section>
       </div>
-    </div>
+    </>
+
   );
 }
+
+const NAV: { page: AdminPage; path: string; label: string }[] = [
+  { page: "review", path: "/admin", label: "Review" },
+  { page: "insights", path: "/admin/insights", label: "Insights" },
+  { page: "cohort", path: "/admin/cohort", label: "Cohort" },
+];
 
 export default function Admin() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const [page, setPage] = useState<AdminPage>(currentPage);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -456,11 +542,58 @@ export default function Admin() {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const onPop = () => setPage(currentPage());
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  const go = (path: string) => {
+    window.history.pushState({}, "", path);
+    setPage(currentPage());
+  };
+
   if (!ready) return null;
+
+  if (!session)
+    return (
+      <main className="admin">
+        <Login />
+      </main>
+    );
 
   return (
     <main className="admin">
-      {session ? <Console session={session} /> : <Login />}
+      <div className="admin__inner">
+        <div className="apply__top">
+          <div className="chips admin__nav">
+            {NAV.map((n) => (
+              <a
+                key={n.page}
+                href={n.path}
+                className={`chip ${page === n.page ? "chip--selected" : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  go(n.path);
+                }}
+              >
+                {n.label}
+              </a>
+            ))}
+          </div>
+          <button
+            className="apply__back"
+            onClick={() => supabase.auth.signOut()}
+          >
+            Sign out
+          </button>
+        </div>
+
+        {page === "review" && <Console session={session} />}
+        {page === "insights" && <AdminInsights />}
+        {page === "cohort" && <AdminCohort />}
+      </div>
     </main>
   );
 }
+

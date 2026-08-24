@@ -8,8 +8,8 @@ export default function App() {
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState<"home" | "apply">("home");
 
-  if (window.location.pathname.replace(/\/$/, "") === "/admin")
-    return <Admin />;
+  if (/^\/admin(\/|$)/.test(window.location.pathname)) return <Admin />;
+
 
 
 

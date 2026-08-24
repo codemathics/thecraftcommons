@@ -80,6 +80,47 @@ export type Database = {
         }
         Relationships: []
       }
+      cohort_members: {
+        Row: {
+          application_id: string
+          created_at: string
+          id: string
+          intended_artifact: string | null
+          notes: string | null
+          shipped_artifact_url: string | null
+          shipped_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          id?: string
+          intended_artifact?: string | null
+          notes?: string | null
+          shipped_artifact_url?: string | null
+          shipped_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          id?: string
+          intended_artifact?: string | null
+          notes?: string | null
+          shipped_artifact_url?: string | null
+          shipped_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohort_members_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           ambition: number
@@ -153,6 +194,7 @@ export type Database = {
       admin_applications: {
         Args: never
         Returns: {
+          admin_count: number
           ai_made: string
           ai_tools: string[]
           ai_tools_other: string
@@ -162,6 +204,7 @@ export type Database = {
           email: string
           experience: string
           figma_edu: string
+          fully_reviewed: boolean
           id: string
           main_tool_other: string
           main_tools: string[]
@@ -175,18 +218,41 @@ export type Database = {
           my_reviewed_at: string
           my_unblock_fit: number
           name: string
+          review_count: number
           reviewed: boolean
           status: string
           stopping: string
           work_link: string
         }[]
       }
+      admin_cohort: {
+        Args: never
+        Returns: {
+          application_id: string
+          cohort_id: string
+          country: string
+          email: string
+          experience: string
+          intended_artifact: string
+          makes: string[]
+          name: string
+          notes: string
+          selected_at: string
+          shipped_artifact_url: string
+          shipped_at: string
+        }[]
+      }
+      admin_insights: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      set_application_status: {
+        Args: { _application_id: string; _status: string }
+        Returns: string
       }
     }
     Enums: {
