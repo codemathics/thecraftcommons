@@ -244,14 +244,98 @@ body {
 
 /* ---------- Apply form ---------- */
 
-.apply-page {
+.apply-page,
+.manifesto-page {
   min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
 }
 
+/* ---------- Manifesto ---------- */
+
+.home__manifesto-link {
+  font-family: var(--font-copy);
+  font-size: 0.92rem;
+  background: none;
+  border: none;
+  color: var(--ink);
+  opacity: 0.55;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(12, 11, 9, 0.3);
+  cursor: pointer;
+  padding: 0.2rem 0;
+  transition: opacity 0.25s ease;
+}
+
+.home__manifesto-link:hover {
+  opacity: 1;
+}
+
+.manifesto__inner {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.5rem clamp(1.25rem, 5vw, 2rem) 10rem; /* clears docked wordmark */
+}
+
+/* The tactile card — same raised-pill-on-recessed-track language as the CTA */
+.manifesto__card {
+  position: relative;
+  background: #fefefe;
+  border: 1px solid #efefef;
+  border-radius: 22px;
+  padding: clamp(1.8rem, 5vw, 3.4rem);
+  box-shadow:
+    0 2px 5px rgba(12, 11, 9, 0.08),
+    0 1px 2px rgba(12, 11, 9, 0.04);
+}
+
+.manifesto__card::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  z-index: -1;
+  background: #f3f3f2;
+  border: 1px solid #e5e5e5;
+  border-radius: 28px;
+  box-shadow: inset 0 1px 3px rgba(12, 11, 9, 0.06);
+}
+
+.manifesto__card p {
+  font-size: 1.02rem;
+  line-height: 1.68;
+  margin-bottom: 1.15em;
+}
+
+.manifesto__title {
+  font-size: clamp(1.6rem, 3.4vw, 2.1rem);
+  font-weight: 400;
+  line-height: 1.2;
+  margin-bottom: 1.4rem;
+}
+
+.manifesto__card .manifesto__lede {
+  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+  line-height: 1.45;
+  margin-bottom: 1.3em;
+}
+
+.manifesto__card .manifesto__motto {
+  margin-top: 2rem;
+  margin-bottom: 0.4em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.92rem;
+}
+
+.manifesto__card .manifesto__sig {
+  margin-bottom: 0;
+  opacity: 0.55;
+}
+
 /* Content fades out before it passes under the docked wordmark */
-.apply-page::after {
+.apply-page::after,
+.manifesto-page::after {
   content: "";
   position: fixed;
   left: 0;

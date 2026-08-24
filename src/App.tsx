@@ -1,28 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Preloader from "./components/Preloader.tsx";
 import PatternField from "./components/PatternField.tsx";
 import ApplyForm from "./components/ApplyForm.tsx";
+import Manifesto from "./components/Manifesto.tsx";
 import Admin from "./components/Admin.tsx";
+
+type View = "home" | "apply" | "manifesto";
+
+const viewFromPath = (): View =>
+  /^\/manifesto(\/|$)/.test(window.location.pathname) ? "manifesto" : "home";
 
 export default function App() {
   const [loaded, setLoaded] = useState(false);
-  const [view, setView] = useState<"home" | "apply">("home");
+  const [view, setViewState] = useState<View>(viewFromPath);
+
+  const setView = (v: View) => {
+    setViewState(v);
+    window.history.pushState(null, "", v === "home" ? "/" : `/${v}`);
+    window.scrollTo(0, 0);
+  };
+
+  useEffect(() => {
+    const onPop = () => setViewState(viewFromPath());
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   if (/^\/admin(\/|$)/.test(window.location.pathname)) return <Admin />;
-
-
-
 
   return (
     <>
       {/* Never unmounts — the wordmark docks to bottom-centre as the brand mark */}
-      <Preloader
-        onDone={() => setLoaded(true)}
-        onHome={() => {
-          setView("home");
-          window.scrollTo(0, 0);
-        }}
-      />
+      <Preloader onDone={() => setLoaded(true)} onHome={() => setView("home")} />
       {view === "home" ? (
         <main className={`home ${loaded ? "home--revealed" : ""}`}>
           <PatternField active={loaded} />
@@ -38,18 +47,26 @@ export default function App() {
               className="home__cta"
               onMouseEnter={() => window.dispatchEvent(new Event("cc-wave-on"))}
               onFocus={() => window.dispatchEvent(new Event("cc-wave-on"))}
-              onClick={() => {
-                setView("apply");
-                window.scrollTo(0, 0);
-              }}
+              onClick={() => setView("apply")}
             >
               Apply
             </button>
+            <button
+              type="button"
+              className="home__manifesto-link"
+              onClick={() => setView("manifesto")}
+            >
+              Why we’re doing this
+            </button>
           </section>
         </main>
-      ) : (
+      ) : view === "apply" ? (
         <main className="apply-page">
           <ApplyForm onBack={() => setView("home")} />
+        </main>
+      ) : (
+        <main className="manifesto-page">
+          <Manifesto onBack={() => setView("home")} />
         </main>
       )}
     </>
