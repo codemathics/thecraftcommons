@@ -73,7 +73,7 @@ export default function Manifesto({
 
           <p className="manifesto__motto">African-first. Globally ambitious.</p>
 
-          <p className="manifesto__sig">Clement &amp; ÌníOluwa</p>
+          <p className="manifesto__sig">Clement &amp; ÌníOlúwa</p>
         </article>
       </div>
     </div>

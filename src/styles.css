@@ -416,10 +416,10 @@ body {
 }
 
 .manifesto__card .manifesto__motto {
-  font-family: var(--font-display);
+  font-family: var(--font-copy);
   margin-top: 2rem;
   margin-bottom: 0.5em;
-  font-size: 1.15rem;
+  font-size: 1.08rem;
 }
 
 .manifesto__card .manifesto__sig {
