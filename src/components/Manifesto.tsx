@@ -1,12 +1,16 @@
-import PatternBand from "./PatternBand.tsx";
+import PatternField from "./PatternField.tsx";
 
-/** The "why" page: the pattern up top, the manifesto in a tactile card. */
-export default function Manifesto({ onBack }: { onBack: () => void }) {
+/** The manifesto: a tactile card floating on the full reactive pattern. */
+export default function Manifesto({
+  onBack,
+  active,
+}: {
+  onBack: () => void;
+  active: boolean;
+}) {
   return (
     <div className="apply manifesto">
-      <div className="apply__band">
-        <PatternBand progress={1} />
-      </div>
+      <PatternField active={active} variant="full" />
 
       <div className="manifesto__inner">
         <div className="apply__top">
@@ -16,7 +20,7 @@ export default function Manifesto({ onBack }: { onBack: () => void }) {
         </div>
 
         <article className="manifesto__card">
-          <h1 className="manifesto__title">Why We’re Doing This</h1>
+          <h1 className="manifesto__title">Manifesto</h1>
 
           <p className="manifesto__lede">
             Talent is everywhere. Access is not.

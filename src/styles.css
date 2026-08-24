@@ -273,9 +273,27 @@ body {
 }
 
 .manifesto__inner {
+  position: relative;
+  z-index: 1; /* above the full-bleed reactive pattern */
   max-width: 44rem;
   margin: 0 auto;
   padding: 1.5rem clamp(1.25rem, 5vw, 2rem) 10rem; /* clears docked wordmark */
+}
+
+/* Over the full pattern, the back link needs its own tactile pill */
+.manifesto .apply__back {
+  opacity: 1;
+  background: #fefefe;
+  border: 1px solid #efefef;
+  border-radius: 999px;
+  padding: 0.45em 1.15em;
+  box-shadow:
+    0 2px 5px rgba(12, 11, 9, 0.08),
+    0 1px 2px rgba(12, 11, 9, 0.04);
+}
+
+.manifesto .apply__back:hover {
+  border-color: #d4d4d4;
 }
 
 /* The tactile card — same raised-pill-on-recessed-track language as the CTA */

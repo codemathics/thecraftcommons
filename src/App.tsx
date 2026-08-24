@@ -56,7 +56,7 @@ export default function App() {
               className="home__manifesto-link"
               onClick={() => setView("manifesto")}
             >
-              Why we’re doing this
+              Manifesto
             </button>
           </section>
         </main>
@@ -66,7 +66,7 @@ export default function App() {
         </main>
       ) : (
         <main className="manifesto-page">
-          <Manifesto onBack={() => setView("home")} />
+          <Manifesto onBack={() => setView("home")} active={loaded} />
         </main>
       )}
     </>

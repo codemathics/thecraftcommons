@@ -12,7 +12,14 @@ const CURSOR_BOOST = 0.55; // how much the cursor inflates nearby glyphs
  * Experiment). Glyphs inflate around the cursor; hovering the CTA sends a
  * rainbow pulse through the pattern (cc-wave-on event).
  */
-export default function PatternField({ active }: { active: boolean }) {
+export default function PatternField({
+  active,
+  variant = "dome",
+}: {
+  active: boolean;
+  /** "dome" = the home hero's hanging mass; "full" = edge-to-edge lace */
+  variant?: "dome" | "full";
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -38,7 +45,8 @@ export default function PatternField({ active }: { active: boolean }) {
       const p = t / RIPPLE_TRAVEL_S;
       const eased = 0.5 - 0.5 * Math.cos(Math.PI * p); // ease in-out
       const start = -RIPPLE_WIDTH * 2;
-      const end = h * 0.8 + w * 0.12 + RIPPLE_WIDTH * 2;
+      const end =
+        h * (variant === "full" ? 1.05 : 0.8) + w * 0.12 + RIPPLE_WIDTH * 2;
       return start + (end - start) * eased;
     };
 
@@ -180,7 +188,8 @@ export default function PatternField({ active }: { active: boolean }) {
 
       const cell = cellFor(w);
       const cols = Math.ceil(w / cell) + 2;
-      const rows = Math.ceil((h * 0.82) / cell) + 1;
+      const rows =
+        Math.ceil((h * (variant === "full" ? 1 : 0.82)) / cell) + 1;
       const rippleY = ambient ? rippleFront(performance.now()) : null;
 
       for (let iy = 0; iy < rows; iy++) {
@@ -190,7 +199,11 @@ export default function PatternField({ active }: { active: boolean }) {
           const r = hashCell(ix, iy);
 
           // Signed depth into the mass, jittered so the edge crumbles
-          const t = (envelope(cx) - cy) / (h * 0.22) + (r - 0.5) * 0.35;
+          // full variant: uniform edge-to-edge lace; dome: the hanging mass
+          const t =
+            variant === "full"
+              ? 1 + (r - 0.5) * 0.08
+              : (envelope(cx) - cy) / (h * 0.22) + (r - 0.5) * 0.35;
 
           // Boosts only amplify cells that already exist; they fade out
           // just past the pattern's edge so blank space stays blank
