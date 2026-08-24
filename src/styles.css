@@ -253,51 +253,67 @@ body {
 
 /* ---------- Manifesto ---------- */
 
-/* Tiny tactile pill nested in the pocket the lace leaves for it */
-.home__manifesto-cta {
+/* ---------- Site footer: corners flanking the docked wordmark ---------- */
+
+.site-footer {
   position: fixed;
-  top: 21px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
+  left: 0;
+  right: 0;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 clamp(1rem, 3vw, 2rem);
+  z-index: 45; /* above page content and fades, below the preloader cover */
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.5s;
   font-family: var(--font-copy);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   letter-spacing: 0.02em;
   color: var(--ink);
-  background: #fefefe;
-  border: 1px solid #efefef;
-  border-radius: 999px;
-  padding: 0.42em 1.05em;
-  cursor: pointer;
-  box-shadow:
-    0 1px 3px rgba(12, 11, 9, 0.1),
-    0 1px 1px rgba(12, 11, 9, 0.05);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 0.7s ease 0.6s,
-    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.25s ease,
-    border-color 0.25s ease;
 }
 
-.home--revealed .home__manifesto-cta {
+.site-footer--visible {
   opacity: 1;
+}
+
+.site-footer__manifesto {
   pointer-events: auto;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.6;
+  text-underline-offset: 4px;
+  transition: opacity 0.25s ease;
 }
 
-.home__manifesto-cta:hover,
-.home__manifesto-cta:focus-visible {
-  transform: translateX(-50%) translateY(-1px);
-  border-color: #d4d4d4;
-  box-shadow:
-    0 4px 10px rgba(12, 11, 9, 0.14),
-    0 1px 2px rgba(12, 11, 9, 0.06);
+.site-footer__manifesto:hover,
+.site-footer__manifesto:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-color: rgba(12, 11, 9, 0.35);
 }
 
-.home__manifesto-cta:active {
-  transform: translateX(-50%) translateY(1px) scale(0.98);
-  box-shadow: inset 0 1px 3px rgba(12, 11, 9, 0.08);
+.site-footer__manifesto[aria-current="page"] {
+  opacity: 1;
+}
+
+.site-footer__copyright {
+  font-size: inherit;
+  opacity: 0.45;
+}
+
+@media (max-width: 640px) {
+  .site-footer {
+    font-size: 0.68rem;
+    padding: 0 0.9rem;
+  }
 }
 
 .apply__thanks-manifesto {

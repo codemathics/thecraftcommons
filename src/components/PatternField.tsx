@@ -16,15 +16,12 @@ export default function PatternField({
   active,
   variant = "dome",
   onDoor,
-  notch,
 }: {
   active: boolean;
   /** "dome" = the home hero's hanging mass; "full" = edge-to-edge lace */
   variant?: "dome" | "full";
   /** easter egg: one tile is a door — hover reveals it, click opens */
   onDoor?: () => void;
-  /** carve a pocket in the lace at top-centre for the Manifesto pill */
-  notch?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -260,19 +257,7 @@ export default function PatternField({
           if (s < 0.25 && r > s * 3) continue;
 
           // Tile edge-to-edge; mirror alternate cells for kaleidoscope symmetry
-          let size = cell * (0.15 + 0.92 * Math.min(s, 1.15));
-
-          // The pocket the lace makes for the Manifesto pill (top centre):
-          // empty inside, shrinking + crumbling at the rim
-          if (notch) {
-            const ex = (cx - w / 2) / 74;
-            const ey = (cy - 34) / 32;
-            const dN = ex * ex + ey * ey;
-            if (dN < 1) continue;
-            const f = Math.min(1, (dN - 1) / 1.1);
-            if (f < 0.3 && r > f * 2.2 + 0.25) continue;
-            size *= 0.3 + 0.7 * f;
-          }
+          const size = cell * (0.15 + 0.92 * Math.min(s, 1.15));
           const flipX = ix % 2 ? -1 : 1;
           const flipY = iy % 2 ? -1 : 1;
           ctx.save();

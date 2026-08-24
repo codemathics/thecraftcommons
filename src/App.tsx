@@ -34,18 +34,7 @@ export default function App() {
       <Preloader onDone={() => setLoaded(true)} onHome={() => setView("home")} />
       {view === "home" ? (
         <main className={`home ${loaded ? "home--revealed" : ""}`}>
-          <PatternField
-            active={loaded}
-            onDoor={() => setView("manifesto")}
-            notch
-          />
-          <button
-            type="button"
-            className="home__manifesto-cta"
-            onClick={() => setView("manifesto")}
-          >
-            Manifesto
-          </button>
+          <PatternField active={loaded} onDoor={() => setView("manifesto")} />
           <section className="home__hero">
             <p className="home__lede">
               CC is a fund for African designers, makers, engineers, and
@@ -76,6 +65,19 @@ export default function App() {
           <Manifesto onBack={() => setView("home")} active={loaded} />
         </main>
       )}
+      <footer className={`site-footer ${loaded ? "site-footer--visible" : ""}`}>
+        <button
+          type="button"
+          className="site-footer__manifesto"
+          onClick={() => setView("manifesto")}
+          aria-current={view === "manifesto" ? "page" : undefined}
+        >
+          Manifesto
+        </button>
+        <small className="site-footer__copyright">
+          © 2026 Craft Commons
+        </small>
+      </footer>
     </>
   );
 }
