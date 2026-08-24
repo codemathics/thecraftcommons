@@ -34,7 +34,7 @@ export default function App() {
       <Preloader onDone={() => setLoaded(true)} onHome={() => setView("home")} />
       {view === "home" ? (
         <main className={`home ${loaded ? "home--revealed" : ""}`}>
-          <PatternField active={loaded} />
+          <PatternField active={loaded} onDoor={() => setView("manifesto")} />
           <section className="home__hero">
             <p className="home__lede">
               CC is a fund for African designers, makers, engineers, and
@@ -51,18 +51,14 @@ export default function App() {
             >
               Apply
             </button>
-            <button
-              type="button"
-              className="home__manifesto-link"
-              onClick={() => setView("manifesto")}
-            >
-              Manifesto
-            </button>
           </section>
         </main>
       ) : view === "apply" ? (
         <main className="apply-page">
-          <ApplyForm onBack={() => setView("home")} />
+          <ApplyForm
+            onBack={() => setView("home")}
+            onManifesto={() => setView("manifesto")}
+          />
         </main>
       ) : (
         <main className="manifesto-page">

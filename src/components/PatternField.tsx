@@ -15,10 +15,13 @@ const CURSOR_BOOST = 0.55; // how much the cursor inflates nearby glyphs
 export default function PatternField({
   active,
   variant = "dome",
+  onDoor,
 }: {
   active: boolean;
   /** "dome" = the home hero's hanging mass; "full" = edge-to-edge lace */
   variant?: "dome" | "full";
+  /** easter egg: one tile is a door — hover reveals it, click opens */
+  onDoor?: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -67,6 +70,7 @@ export default function PatternField({
       rainbow.width = Math.round(w * dpr);
       rainbow.height = Math.round(h * dpr);
       buildShapeMask();
+      placeDoor();
       dirty = true;
     };
 
@@ -75,6 +79,20 @@ export default function PatternField({
     const eased = { x: -9999, y: -9999 };
     let dirty = true;
     let raf = 0;
+
+    // The door: one tile of the lace, revealed on hover, opens the manifesto
+    const door = { ix: -1, iy: -1, cx: 0, cy: 0, hovered: false };
+    const placeDoor = () => {
+      if (!onDoor) return;
+      const cell = cellFor(w);
+      door.ix = Math.round((w * 0.61) / cell);
+      door.iy = Math.round((h * 0.44) / cell);
+      door.cx = door.ix * cell;
+      door.cy = door.iy * cell;
+    };
+    const onDoorClick = () => {
+      if (door.hovered && onDoor) onDoor();
+    };
 
     // Rainbow wave: a single travelling pulse per CTA hover — it sweeps
     // top-down through the pattern and exits; nothing lingers.
@@ -196,6 +214,7 @@ export default function PatternField({
         for (let ix = 0; ix < cols; ix++) {
           const cx = ix * cell;
           const cy = iy * cell;
+          if (ix === door.ix && iy === door.iy) continue; // drawn on top, after
           const r = hashCell(ix, iy);
 
           // Signed depth into the mass, jittered so the edge crumbles
@@ -250,6 +269,34 @@ export default function PatternField({
         }
       }
 
+      // The door tile, drawn on top: ink until hovered, then a rainbow fleck
+      if (onDoor && door.ix >= 0) {
+        const r = hashCell(door.ix, door.iy);
+        const t =
+          variant === "full"
+            ? 1 + (r - 0.5) * 0.08
+            : (envelope(door.cx) - door.cy) / (h * 0.22) + (r - 0.5) * 0.35;
+        const s = Math.max(0, Math.min(1, t));
+        if (s > 0.02) {
+          const size =
+            cell *
+            (0.15 + 0.92 * Math.min(s, 1.15)) *
+            (door.hovered ? 1.22 : 1);
+          ctx.fillStyle = door.hovered
+            ? `hsl(${(performance.now() / 15) % 360} 88% 55%)`
+            : INK;
+          ctx.save();
+          ctx.translate(door.cx, door.cy);
+          ctx.scale(
+            size * (door.ix % 2 ? -1 : 1),
+            size * (door.iy % 2 ? -1 : 1)
+          );
+          ctx.fill(icon);
+          ctx.restore();
+          ctx.fillStyle = INK;
+        }
+      }
+
       // Composite the rainbow pulse through the pattern
       if (wave.running) {
         const now = performance.now();
@@ -292,6 +339,20 @@ export default function PatternField({
       // Keep redrawing while a pulse or ambient ripple is travelling
       if (wave.running) dirty = true;
       if (ambient && rippleFront(performance.now()) !== null) dirty = true;
+
+      // Door hover: reveal, pointer cursor, hue cycling while held
+      if (onDoor && door.ix >= 0) {
+        const cell = cellFor(w);
+        const hov =
+          Math.abs(mouse.x - door.cx) < cell * 0.95 &&
+          Math.abs(mouse.y - door.cy) < cell * 0.95;
+        if (hov !== door.hovered) {
+          door.hovered = hov;
+          dirty = true;
+          document.body.style.cursor = hov ? "pointer" : "";
+        }
+        if (door.hovered) dirty = true;
+      }
       if (dirty || moving) {
         draw();
         dirty = false;
@@ -303,6 +364,7 @@ export default function PatternField({
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerleave", onLeave);
     window.addEventListener("cc-wave-on", onWaveOn);
+    window.addEventListener("click", onDoorClick);
     raf = requestAnimationFrame(tick);
 
     return () => {
@@ -311,6 +373,8 @@ export default function PatternField({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("cc-wave-on", onWaveOn);
+      window.removeEventListener("click", onDoorClick);
+      if (door.hovered) document.body.style.cursor = "";
     };
   }, []);
 

@@ -253,23 +253,27 @@ body {
 
 /* ---------- Manifesto ---------- */
 
-.home__manifesto-link {
+.apply__thanks-manifesto {
+  margin-top: 1.6rem;
+  font-size: 1.02rem;
+}
+
+.apply__thanks-manifesto button {
   font-family: var(--font-copy);
-  font-size: 0.92rem;
+  font-size: inherit;
   background: none;
   border: none;
   color: var(--ink);
-  opacity: 0.55;
   text-decoration: underline;
   text-underline-offset: 4px;
-  text-decoration-color: rgba(12, 11, 9, 0.3);
+  text-decoration-color: rgba(12, 11, 9, 0.35);
   cursor: pointer;
-  padding: 0.2rem 0;
-  transition: opacity 0.25s ease;
+  padding: 0;
+  transition: text-decoration-color 0.25s ease;
 }
 
-.home__manifesto-link:hover {
-  opacity: 1;
+.apply__thanks-manifesto button:hover {
+  text-decoration-color: var(--ink);
 }
 
 .manifesto__inner {

@@ -269,7 +269,13 @@ const QUESTIONS: Record<string, string> = {
   commit: "One last thing.",
 };
 
-export default function ApplyForm({ onBack }: { onBack: () => void }) {
+export default function ApplyForm({
+  onBack,
+  onManifesto,
+}: {
+  onBack: () => void;
+  onManifesto: () => void;
+}) {
   const [d, setD] = useState<Draft>(loadDraft);
   const [step, setStep] = useState(loadStep);
   const [attempted, setAttempted] = useState(false);
@@ -761,6 +767,13 @@ export default function ApplyForm({ onBack }: { onBack: () => void }) {
             <p>
               Thank you — we read every application. You'll hear from us by
               email about the inaugural cohort.
+            </p>
+            <p className="apply__thanks-manifesto">
+              While you wait —{" "}
+              <button type="button" onClick={onManifesto}>
+                read the Manifesto
+              </button>
+              .
             </p>
           </div>
         ) : (
