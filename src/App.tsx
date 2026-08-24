@@ -2,10 +2,16 @@ import { useState } from "react";
 import Preloader from "./components/Preloader.tsx";
 import PatternField from "./components/PatternField.tsx";
 import ApplyForm from "./components/ApplyForm.tsx";
+import Admin from "./components/Admin.tsx";
 
 export default function App() {
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState<"home" | "apply">("home");
+
+  if (window.location.pathname.replace(/\/$/, "") === "/admin")
+    return <Admin />;
+
+
 
   return (
     <>
