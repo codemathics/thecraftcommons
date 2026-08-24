@@ -514,7 +514,8 @@ function Console({ session }: { session: Session }) {
           )}
         </section>
       </div>
-    </div>
+    </>
+
   );
 }
 
