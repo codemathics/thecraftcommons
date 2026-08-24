@@ -41,9 +41,21 @@ type AdminApplication = {
   my_commitment_readiness: number | null;
   my_notes: string | null;
   my_reviewed_at: string | null;
+  review_count: number;
+  admin_count: number;
+  fully_reviewed: boolean;
 };
 
+const STATUSES = [
+  "submitted",
+  "reviewed",
+  "selected",
+  "waitlist",
+  "declined",
+] as const;
+
 const RUBRIC = [
+
   {
     key: "ambition",
     label: "Ambition",
