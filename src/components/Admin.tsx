@@ -178,7 +178,60 @@ function Tags({ items, other }: { items: string[]; other?: string | null }) {
   );
 }
 
+function StatusControl({
+  app,
+  onChanged,
+}: {
+  app: AdminApplication;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  const set = async (status: string) => {
+    if (status === app.status) return;
+    setBusy(status);
+    setError("");
+    const { error } = await supabase.rpc("set_application_status", {
+      _application_id: app.id,
+      _status: status,
+    });
+    setBusy(null);
+    if (error) {
+      setError("Couldn't change the status. Try again in a moment.");
+      return;
+    }
+    onChanged();
+  };
+
+  return (
+    <div className="admin__score admin__decision">
+      <p className="field__label">Decision</p>
+      <p className="field__hint">
+        Both reviewers have scored this application ({app.review_count} of{" "}
+        {Math.max(app.admin_count, 2)}). Selecting them opens a cohort record.
+      </p>
+      <div className="chips">
+        {STATUSES.map((s) => (
+          <button
+            type="button"
+            key={s}
+            disabled={busy !== null}
+            aria-pressed={app.status === s}
+            className={`chip ${app.status === s ? "chip--selected" : ""}`}
+            onClick={() => set(s)}
+          >
+            {busy === s ? "…" : s}
+          </button>
+        ))}
+      </div>
+      {error && <p className="apply__incomplete">{error}</p>}
+    </div>
+  );
+}
+
 function ReviewCard({
+
   app,
   onSaved,
 }: {
