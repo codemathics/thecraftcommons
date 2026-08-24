@@ -342,7 +342,12 @@ function ReviewCard({
             {saving ? "Saving…" : "Save scores & reveal"}
           </button>
         )}
+
+        {app.fully_reviewed && (
+          <StatusControl app={app} onChanged={onSaved} />
+        )}
       </div>
+
     </article>
   );
 }
