@@ -1,0 +1,690 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: "OT Jubilee";
+  src: url("/OTJubilee-Golden.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --ink: #0c0b09;
+  --paper: #fefefe;
+  --font-display: "OT Jubilee", Georgia, serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-display);
+  background: var(--ink);
+  color: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ---------- Preloader / brand mark ---------- */
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.preloader__bg {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  pointer-events: auto;
+}
+
+.preloader--done .preloader__bg {
+  pointer-events: none;
+}
+
+.preloader__word {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.6rem, 8vw, 6.2rem);
+  line-height: 1;
+  letter-spacing: 0.005em;
+  color: var(--paper);
+  white-space: nowrap;
+  visibility: hidden; /* revealed by GSAP (autoAlpha) */
+  will-change: transform;
+  /* it's a <button> so the docked mark can link home */
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  pointer-events: none; /* inert while loading */
+}
+
+/* Once docked, CSS owns the wordmark's position — fixed bottom-centre
+   tracks mobile browser chrome and safe areas, unlike a frozen transform */
+.preloader--done .preloader__word {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  font-size: 17px;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: opacity 0.25s ease;
+}
+
+@media (max-width: 640px) {
+  .preloader--done .preloader__word {
+    font-size: 19px;
+  }
+}
+
+.preloader--done .preloader__word:hover {
+  opacity: 0.65;
+}
+
+.preloader__frame {
+  /* open size — captured by GSAP on mount, then closed to 0 */
+  width: 2.1em;
+  height: 1.1em;
+  margin: 0 0.14em;
+  overflow: hidden;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden; /* revealed by GSAP when it expands */
+}
+
+.preloader__count {
+  color: inherit;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ---------- Pattern field ---------- */
+
+.pattern-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.pattern-field--visible {
+  opacity: 1;
+  transition: opacity 1.4s ease 0.2s;
+}
+
+/* ---------- Home (revealed behind the wordmark) ---------- */
+
+.home {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 2rem clamp(1.5rem, 5vw, 4rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.home__hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.1rem;
+  /* visible pattern tip sits at ~62.5vh (envelope in PatternField minus
+     edge dropout); 96px gap, minus .home's 2rem top padding */
+  margin: calc(62.5vh + 96px - 2rem) auto 0;
+  max-width: 46rem;
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.home--revealed .home__hero {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.9s ease 0.35s,
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.35s;
+}
+
+.home__lede {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.55;
+}
+
+.home__cta {
+  margin-top: 0.9rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.75em 2.4em;
+  cursor: pointer;
+  transition: background-color 0.35s ease, color 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home__cta:hover,
+.home__cta:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+  transform: translateY(-2px);
+}
+
+/* ---------- Apply form ---------- */
+
+.apply-page {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Content fades out before it passes under the docked wordmark */
+.apply-page::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 92px;
+  background: linear-gradient(to bottom, transparent, var(--paper) 62%);
+  pointer-events: none;
+  z-index: 40; /* under the wordmark (z-50), over the form */
+}
+
+.apply {
+  animation: apply-in 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes apply-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.apply__band {
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.apply__inner {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem clamp(1.25rem, 5vw, 2rem) 10rem; /* clears docked wordmark */
+}
+
+.apply__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+}
+
+.apply__back {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  background: none;
+  border: none;
+  color: var(--ink);
+  opacity: 0.55;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: opacity 0.25s ease;
+}
+
+.apply__back:hover {
+  opacity: 1;
+}
+
+
+/* Progressive steps */
+.step {
+  min-height: 46vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  animation: step-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.step__eyebrow {
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 1.1rem;
+}
+
+.step__q {
+  font-size: clamp(1.45rem, 3.2vw, 2rem);
+  font-weight: 400;
+  line-height: 1.25;
+  margin-bottom: 1.7rem;
+}
+
+.step__nav {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  margin-top: 2.4rem;
+}
+
+.step__next {
+  padding: 0.6em 2em;
+  font-size: 1rem;
+}
+
+.step__hint {
+  font-size: 0.82rem;
+  opacity: 0.45;
+}
+
+.step__hint strong {
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.field {
+  display: block;
+  border: none;
+  margin: 0 0 2rem;
+  padding: 0;
+}
+
+.field__label {
+  display: block;
+  font-size: 1.08rem;
+  line-height: 1.4;
+  margin-bottom: 0.55rem;
+}
+
+.field__hint {
+  display: block;
+  font-size: 0.88rem;
+  opacity: 0.55;
+  margin: -0.3rem 0 0.6rem;
+}
+
+.field__hint a {
+  color: inherit;
+}
+
+.field__error {
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  color: #a03232;
+}
+
+.field__count {
+  display: block;
+  font-size: 0.78rem;
+  opacity: 0.4;
+  text-align: right;
+  margin-top: 0.3rem;
+}
+
+/* The () focus state: parentheses draw in around the active control */
+.field__control {
+  position: relative;
+  display: block;
+}
+
+.field__control::before,
+.field__control::after {
+  position: absolute;
+  top: 50%;
+  font-size: 1.5em;
+  line-height: 1;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.field__control::before {
+  content: "(";
+  left: -0.85em;
+  transform: translateY(-55%) translateX(-8px);
+}
+
+.field__control::after {
+  content: ")";
+  right: -0.85em;
+  transform: translateY(-55%) translateX(8px);
+}
+
+.field__control:focus-within::before,
+.field__control:focus-within::after {
+  opacity: 1;
+  transform: translateY(-55%) translateX(0);
+}
+
+.field__control input,
+.field__control textarea {
+  width: 100%;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(12, 11, 9, 0.28);
+  padding: 0.45em 0;
+  outline: none;
+  transition: border-color 0.25s ease;
+  border-radius: 0;
+}
+
+.field__control input:focus,
+.field__control textarea:focus {
+  border-color: var(--ink);
+}
+
+.field__control input::placeholder,
+.field__control textarea::placeholder {
+  color: rgba(12, 11, 9, 0.32);
+}
+
+.field__control--area textarea {
+  border: 1px solid rgba(12, 11, 9, 0.28);
+  border-radius: 10px;
+  padding: 0.7em 0.9em;
+  resize: vertical;
+  min-height: 5.5em;
+}
+
+.field__control--area textarea:focus {
+  border-color: var(--ink);
+}
+
+/* No () parens around textareas — they sit oddly on tall boxes */
+.field__control--area::before,
+.field__control--area::after {
+  content: none;
+}
+
+.field__control--reveal {
+  margin-top: 0.8rem;
+}
+
+/* Country combobox — suggestions inline, under the field */
+.combo {
+  display: block;
+}
+
+.combo__list {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  display: block;
+  background: var(--paper);
+  border: 1px solid rgba(12, 11, 9, 0.22);
+  border-radius: 10px;
+  box-shadow: 0 14px 36px rgba(12, 11, 9, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 30;
+  padding: 0.35rem;
+}
+
+.combo__opt {
+  display: block;
+  padding: 0.5em 0.8em;
+  border-radius: 7px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.combo__opt--hi {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Chips */
+.chip-group {
+  margin-bottom: 1rem;
+}
+
+.chip-group__label {
+  font-size: 0.72rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  opacity: 0.42;
+  margin-bottom: 0.5rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid rgba(12, 11, 9, 0.3);
+  border-radius: 999px;
+  padding: 0.45em 1.05em;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.chip:hover {
+  border-color: var(--ink);
+}
+
+.chip--selected {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.chip .stamp {
+  flex: none;
+}
+
+.apply__more-tools {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  background: none;
+  border: none;
+  color: var(--ink);
+  opacity: 0.55;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 0.2rem 0;
+  margin-top: 0.2rem;
+}
+
+.apply__more-tools:hover {
+  opacity: 1;
+}
+
+/* Commitment checkbox — the signature moment */
+.commit {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  margin: 3rem 0 0;
+  cursor: pointer;
+}
+
+.commit input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.commit__box {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(12, 11, 9, 0.4);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease;
+  margin-top: 0.1em;
+}
+
+.commit:hover .commit__box {
+  border-color: var(--ink);
+}
+
+.commit input:focus-visible + .commit__box {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.commit__box .stamp {
+  animation: stamp-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes stamp-in {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.commit__label {
+  font-size: 1.08rem;
+  line-height: 1.45;
+}
+
+.apply__incomplete {
+  margin-top: 1.6rem;
+  font-size: 0.92rem;
+  color: #a03232;
+}
+
+.apply__submit {
+  margin-top: 2.2rem;
+}
+
+.apply__submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.apply__thanks h1 {
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  font-weight: 400;
+  margin-bottom: 1rem;
+}
+
+.apply__thanks p {
+  font-size: 1.08rem;
+  line-height: 1.55;
+  max-width: 30rem;
+}
+
+/* ---------- Tablets ---------- */
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .home__hero {
+    /* keep clear air between the CTA and the docked wordmark */
+    margin: calc(62.5vh + 48px - 2rem) auto 110px;
+  }
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 640px) {
+  /* let the two copy sentences wrap naturally instead of forcing lines */
+  .home__lede br {
+    display: none;
+  }
+
+  .home__lede {
+    font-size: 1rem;
+    padding: 0 0.25rem;
+  }
+
+  .home__hero {
+    /* tighter gap under the pattern; extra bottom room clears the
+       docked wordmark on short screens */
+    margin: calc(62.5vh + 48px - 2rem) auto 96px;
+  }
+
+  .step__q {
+    font-size: 1.35rem;
+  }
+
+  .chip {
+    font-size: 0.9rem;
+    padding: 0.45em 0.95em;
+  }
+
+  .apply__inner {
+    padding-bottom: 8rem;
+  }
+
+  .commit__label {
+    font-size: 1rem;
+  }
+
+  /* the () focus parens sit outside the field — pull them in so they
+     don't clip at the screen edge */
+  .field__control::before {
+    left: -0.55em;
+  }
+
+  .field__control::after {
+    right: -0.55em;
+  }
+}
