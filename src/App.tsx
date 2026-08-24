@@ -35,6 +35,13 @@ export default function App() {
       {view === "home" ? (
         <main className={`home ${loaded ? "home--revealed" : ""}`}>
           <PatternField active={loaded} onDoor={() => setView("manifesto")} />
+          <button
+            type="button"
+            className="home__manifesto-cta"
+            onClick={() => setView("manifesto")}
+          >
+            Manifesto
+          </button>
           <section className="home__hero">
             <p className="home__lede">
               CC is a fund for African designers, makers, engineers, and
