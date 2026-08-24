@@ -1,6 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../integrations/supabase/client";
+import AdminInsights from "./AdminInsights.tsx";
+import AdminCohort from "./AdminCohort.tsx";
+
+type AdminPage = "review" | "insights" | "cohort";
+
+function currentPage(): AdminPage {
+  const path = window.location.pathname.replace(/\/$/, "");
+  if (path === "/admin/insights") return "insights";
+  if (path === "/admin/cohort") return "cohort";
+  return "review";
+}
+
 
 type AdminApplication = {
   id: string;
