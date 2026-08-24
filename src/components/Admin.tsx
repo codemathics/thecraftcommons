@@ -437,11 +437,11 @@ function Console({ session }: { session: Session }) {
   const list = tab === "queue" ? queue : done;
   const active = apps.find((a) => a.id === activeId) ?? null;
 
-  if (loading) return <p className="admin__note admin__inner">Loading…</p>;
+  if (loading) return <p className="admin__note">Loading…</p>;
 
   if (denied)
     return (
-      <div className="admin__inner admin__inner--narrow">
+      <div>
         <h1 className="admin__title">No reviewer access</h1>
         <p className="admin__note">
           This account isn't on the reviewer list.{" "}
@@ -456,18 +456,14 @@ function Console({ session }: { session: Session }) {
     );
 
   return (
-    <div className="admin__inner">
-      <div className="apply__top">
-        <p className="step__eyebrow">
-          {session.user.email} · {queue.length} to score
-        </p>
-        <button className="apply__back" onClick={() => supabase.auth.signOut()}>
-          Sign out
-        </button>
-      </div>
+    <>
+      <p className="step__eyebrow admin__count">
+        {session.user.email} · {queue.length} to score
+      </p>
 
       <div className="admin__layout">
         <aside className="admin__queue">
+
           <div className="chips admin__tabs">
             <button
               className={`chip ${tab === "queue" ? "chip--selected" : ""}`}
