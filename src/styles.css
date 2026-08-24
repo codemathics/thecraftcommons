@@ -253,25 +253,25 @@ body {
 
 /* ---------- Manifesto ---------- */
 
-/* Small tactile pill, centre top of home, floating over the dense lace */
+/* Tiny tactile pill nested in the pocket the lace leaves for it */
 .home__manifesto-cta {
   position: fixed;
-  top: 22px;
+  top: 21px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;
   font-family: var(--font-copy);
-  font-size: 0.92rem;
+  font-size: 0.76rem;
   letter-spacing: 0.02em;
   color: var(--ink);
   background: #fefefe;
   border: 1px solid #efefef;
   border-radius: 999px;
-  padding: 0.52em 1.5em;
+  padding: 0.42em 1.05em;
   cursor: pointer;
   box-shadow:
-    0 2px 5px rgba(12, 11, 9, 0.12),
-    0 1px 2px rgba(12, 11, 9, 0.06);
+    0 1px 3px rgba(12, 11, 9, 0.1),
+    0 1px 1px rgba(12, 11, 9, 0.05);
   opacity: 0;
   pointer-events: none;
   transition:

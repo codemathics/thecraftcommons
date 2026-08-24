@@ -34,7 +34,11 @@ export default function App() {
       <Preloader onDone={() => setLoaded(true)} onHome={() => setView("home")} />
       {view === "home" ? (
         <main className={`home ${loaded ? "home--revealed" : ""}`}>
-          <PatternField active={loaded} onDoor={() => setView("manifesto")} />
+          <PatternField
+            active={loaded}
+            onDoor={() => setView("manifesto")}
+            notch
+          />
           <button
             type="button"
             className="home__manifesto-cta"
