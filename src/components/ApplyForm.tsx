@@ -357,15 +357,43 @@ export default function ApplyForm({ onBack }: { onBack: () => void }) {
 
   const submit = async () => {
     setSubmitting(true);
-    // Stub submit — replaced by the Lovable backend on port
-    console.log("CC application:", d);
-    await new Promise((r) => setTimeout(r, 900));
+    setSubmitError("");
+    const usesFigma = d.mainTools.includes("Figma");
+    const [{ error }] = await Promise.all([
+      supabase.from("applications").insert({
+        name: d.name,
+        email: d.email,
+        country: d.country,
+        experience: d.experience,
+        makes: d.makes,
+        makes_other: d.makesOther || null,
+        work_link: d.workLink || null,
+        main_tools: d.mainTools,
+        main_tool_other: d.mainToolOther || null,
+        figma_edu: usesFigma ? d.figmaEdu || null : null,
+        ai_tools: d.aiTools,
+        ai_tools_other: d.aiToolsOther || null,
+        ai_made: d.aiMade || null,
+        make_3mo: d.make3mo || null,
+        stopping: d.stopping || null,
+        committed: d.commit,
+      }),
+      new Promise((r) => setTimeout(r, 900)),
+    ]);
+    if (error) {
+      setSubmitting(false);
+      setSubmitError(
+        "That didn't send. Your answers are saved — try again in a moment."
+      );
+      return;
+    }
     localStorage.removeItem(DRAFT_KEY);
     localStorage.removeItem(STEP_KEY);
     setSubmitting(false);
     setSubmitted(true);
     window.dispatchEvent(new Event("cc-band-wave"));
   };
+
 
   const doAdvance = () => {
     if (submitting) return;
