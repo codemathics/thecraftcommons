@@ -12,10 +12,19 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "PP Neue Montreal";
+  src: url("/PPNeueMontrealArabic-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --ink: #0c0b09;
   --paper: #fefefe;
-  --font-display: "OT Jubilee", Georgia, serif;
+  --font-display: "OT Jubilee", Georgia, serif; /* the logo, nothing else */
+  --font-copy: "PP Neue Montreal", "Helvetica Neue", Arial, sans-serif;
 }
 
 html,
@@ -24,7 +33,7 @@ body {
 }
 
 body {
-  font-family: var(--font-display);
+  font-family: var(--font-copy);
   background: var(--ink);
   color: var(--paper);
   -webkit-font-smoothing: antialiased;
@@ -70,7 +79,7 @@ body {
   background: none;
   border: none;
   padding: 0;
-  font-family: inherit;
+  font-family: var(--font-display);
   pointer-events: none; /* inert while loading */
 }
 
@@ -168,14 +177,14 @@ body {
 }
 
 .home__lede {
-  font-family: var(--font-display);
+  font-family: var(--font-copy);
   font-size: clamp(1rem, 1.5vw, 1.2rem);
   line-height: 1.55;
 }
 
 .home__cta {
   margin-top: 0.9rem;
-  font-family: var(--font-display);
+  font-family: var(--font-copy);
   font-size: 1.05rem;
   letter-spacing: 0.02em;
   color: var(--ink);
@@ -251,7 +260,7 @@ body {
 }
 
 .apply__back {
-  font-family: var(--font-display);
+  font-family: var(--font-copy);
   font-size: 1rem;
   background: none;
   border: none;
@@ -374,6 +383,7 @@ body {
 .field__control::after {
   position: absolute;
   top: 50%;
+  font-family: var(--font-display); /* the () is the brand's motif */
   font-size: 1.5em;
   line-height: 1;
   color: var(--ink);
@@ -403,7 +413,7 @@ body {
 .field__control input,
 .field__control textarea {
   width: 100%;
-  font-family: var(--font-display);
+  font-family: var(--font-copy);
   font-size: 1.05rem;
   color: var(--ink);
   background: transparent;
@@ -504,7 +514,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.45em;
-  font-family: var(--font-display);
+  font-family: var(--font-copy);
   font-size: 0.95rem;
   color: var(--ink);
   background: transparent;
@@ -531,7 +541,7 @@ body {
 }
 
 .apply__more-tools {
-  font-family: var(--font-display);
+  font-family: var(--font-copy);
   font-size: 0.88rem;
   background: none;
   border: none;
