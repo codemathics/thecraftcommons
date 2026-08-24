@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import PatternBand from "./PatternBand.tsx";
 import { ICON_D } from "../lib/mark.ts";
+import { supabase } from "../integrations/supabase/client";
+
 
 const DRAFT_KEY = "cc-application-draft";
 const STEP_KEY = "cc-application-step";
@@ -273,6 +275,8 @@ export default function ApplyForm({ onBack }: { onBack: () => void }) {
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
   const [showAllTools, setShowAllTools] = useState(false);
 
   // Country combobox state
@@ -770,6 +774,8 @@ export default function ApplyForm({ onBack }: { onBack: () => void }) {
               {attempted && !current.valid(d) && (
                 <p className="field__error">{current.error}</p>
               )}
+              {submitError && <p className="apply__incomplete">{submitError}</p>}
+
               <div className="step__nav">
                 <button
                   className="home__cta step__next"
