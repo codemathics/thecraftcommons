@@ -7,8 +7,12 @@ import Admin from "./components/Admin.tsx";
 
 type View = "home" | "apply" | "manifesto";
 
-const viewFromPath = (): View =>
-  /^\/manifesto(\/|$)/.test(window.location.pathname) ? "manifesto" : "home";
+const viewFromPath = (): View => {
+  const p = window.location.pathname;
+  if (/^\/manifesto(\/|$)/.test(p)) return "manifesto";
+  if (/^\/form(\/|$)/.test(p)) return "apply";
+  return "home";
+};
 
 export default function App() {
   const [loaded, setLoaded] = useState(false);
@@ -16,7 +20,9 @@ export default function App() {
 
   const setView = (v: View) => {
     setViewState(v);
-    window.history.pushState(null, "", v === "home" ? "/" : `/${v}`);
+    const path =
+      v === "home" ? "/" : v === "apply" ? "/form" : `/${v}`;
+    window.history.pushState(null, "", path);
     window.scrollTo(0, 0);
   };
 
