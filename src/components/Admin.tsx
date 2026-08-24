@@ -519,9 +519,16 @@ function Console({ session }: { session: Session }) {
   );
 }
 
+const NAV: { page: AdminPage; path: string; label: string }[] = [
+  { page: "review", path: "/admin", label: "Review" },
+  { page: "insights", path: "/admin/insights", label: "Insights" },
+  { page: "cohort", path: "/admin/cohort", label: "Cohort" },
+];
+
 export default function Admin() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const [page, setPage] = useState<AdminPage>(currentPage);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -535,11 +542,58 @@ export default function Admin() {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const onPop = () => setPage(currentPage());
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  const go = (path: string) => {
+    window.history.pushState({}, "", path);
+    setPage(currentPage());
+  };
+
   if (!ready) return null;
+
+  if (!session)
+    return (
+      <main className="admin">
+        <Login />
+      </main>
+    );
 
   return (
     <main className="admin">
-      {session ? <Console session={session} /> : <Login />}
+      <div className="admin__inner">
+        <div className="apply__top">
+          <div className="chips admin__nav">
+            {NAV.map((n) => (
+              <a
+                key={n.page}
+                href={n.path}
+                className={`chip ${page === n.page ? "chip--selected" : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  go(n.path);
+                }}
+              >
+                {n.label}
+              </a>
+            ))}
+          </div>
+          <button
+            className="apply__back"
+            onClick={() => supabase.auth.signOut()}
+          >
+            Sign out
+          </button>
+        </div>
+
+        {page === "review" && <Console session={session} />}
+        {page === "insights" && <AdminInsights />}
+        {page === "cohort" && <AdminCohort />}
+      </div>
     </main>
   );
 }
+
