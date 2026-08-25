@@ -297,15 +297,18 @@ body {
   padding: 0;
   cursor: pointer;
   opacity: 0.6;
+  text-decoration: underline;
   text-underline-offset: 4px;
-  transition: opacity 0.25s ease;
+  text-decoration-color: rgba(12, 11, 9, 0.35);
+  transition:
+    opacity 0.25s ease,
+    text-decoration-color 0.25s ease;
 }
 
 .site-footer__manifesto:hover,
 .site-footer__manifesto:focus-visible {
   opacity: 1;
-  text-decoration: underline;
-  text-decoration-color: rgba(12, 11, 9, 0.35);
+  text-decoration-color: var(--ink);
 }
 
 .site-footer__manifesto[aria-current="page"] {
