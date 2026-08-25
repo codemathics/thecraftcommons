@@ -15,7 +15,7 @@ export default function Manifesto({
       <div className="manifesto__inner">
         <div className="apply__top">
           <button type="button" className="apply__back" onClick={onBack}>
-            ← back
+            ← Go back
           </button>
         </div>
 

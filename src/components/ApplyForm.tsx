@@ -757,7 +757,7 @@ export default function ApplyForm({
       <div className="apply__inner">
         <div className="apply__top">
           <button type="button" className="apply__back" onClick={goBack}>
-            ← back
+            ← Go back
           </button>
         </div>
 
