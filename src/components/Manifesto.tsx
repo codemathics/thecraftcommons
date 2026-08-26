@@ -174,44 +174,44 @@ export default function Manifesto({
               className="manifesto__close"
               ref={closeRef}
               onClick={onClose}
-              aria-label="close"
+              aria-label="Close"
             >
-              close
+              Close
             </button>
 
             <div className="manifesto__body">
               <p className="manifesto__lede" id="manifesto-title">
-                talent is everywhere. access is not.
+                Talent is everywhere. Access is not.
               </p>
 
               <div className="manifesto__note">
                 <p>
-                  across africa and its diaspora, people are already making
-                  work that deserves to be seen. what is missing is not talent.
-                  it is time. tools. a mentor close enough to care. a door into
+                  Across Africa and its diaspora, people are already making
+                  work that deserves to be seen. What is missing is not talent.
+                  It is time. Tools. A mentor close enough to care. A door into
                   the rooms where work becomes opportunity.
                 </p>
-                <p>this is not a giveaway. it is not a bootcamp.</p>
+                <p>This is not a giveaway. It is not a bootcamp.</p>
                 <p>
-                  it is a bet. we put tools in a few hands. we sit with them
-                  while they finish. we make sure the work is seen.
+                  It is a bet. We put tools in a few hands. We sit with them
+                  while they finish. We make sure the work is seen.
                 </p>
                 <p>
-                  great work should be visible. where you were born should not
-                  decide who gets to shape what comes next. african creatives
-                  should not only arrive in this era. they should build inside
+                  Great work should be visible. Where you were born should not
+                  decide who gets to shape what comes next. African creatives
+                  should not only arrive in this era. They should build inside
                   it, lead it, and keep what they make.
                 </p>
                 <p>
-                  we start small. three months. a handful of designers. we
-                  learn in public. we refine the model. we build proof.
+                  We start small. Three months. A handful of designers. We
+                  learn in public. We refine the model. We build proof.
                 </p>
                 <p>
-                  in time, a network: global work, companies, collaborators.
-                  and one day, the next generation of founders.
+                  In time, a network: global work, companies, collaborators.
+                  And one day, the next generation of founders.
                 </p>
                 <p className="manifesto__motto">
-                  african-first. globally ambitious.
+                  African-first. Globally ambitious.
                 </p>
               </div>
 
