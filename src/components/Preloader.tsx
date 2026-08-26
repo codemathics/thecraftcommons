@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { SLOT_FRAMES, waitForSlots } from "../lib/slots.ts";
 
 gsap.registerPlugin(useGSAP);
 
@@ -9,12 +10,15 @@ const PAPER = "#fefefe";
 
 const SEEN_KEY = "cc-preloader-seen"; // full sequence runs once per session
 
-const COUNT_S = 2.1; // 0 → 100 duration
+const FRAME_S = 0.08; // height/width morph between stills
+const STILL_S = 0.095; // hold each portrait so every still is readable
+const MAGNET_R = 130;
+const MAGNET_PULL = 0.2;
+const HOVER_SCALE = 1.2;
 
 /** must match the .preloader--done CSS, which owns the docked position */
 const dockFontPx = () => (window.innerWidth <= 640 ? 19 : 17);
 const dockBottomPx = () => {
-  // resolve env(safe-area-inset-bottom) through a probe element
   const p = document.createElement("div");
   p.style.cssText =
     "position:fixed;visibility:hidden;padding-bottom:env(safe-area-inset-bottom,0px)";
@@ -25,10 +29,11 @@ const dockBottomPx = () => {
 };
 
 /**
- * Loads in centered and closed, the () expands and a counter runs 0 → 100
- * between the parens, they collapse shut, then the wordmark slides to
+ * loads in centered and closed, the () expands and a film of portraits
+ * flips between the parens, they collapse shut, then the wordmark slides to
  * bottom-centre and stays there as the site's brand mark while the page
- * morphs to white. The component never unmounts.
+ * morphs to white. once docked, hover magnetises it to the cursor and
+ * replays the film. the component never unmounts.
  */
 export default function Preloader({
   onDone,
@@ -41,7 +46,7 @@ export default function Preloader({
   const bgRef = useRef<HTMLDivElement>(null);
   const wordRef = useRef<HTMLButtonElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
-  const countRef = useRef<HTMLSpanElement>(null);
+  const filmRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
@@ -49,26 +54,88 @@ export default function Preloader({
       const bg = bgRef.current!;
       const word = wordRef.current!;
       const frame = frameRef.current!;
-      const count = countRef.current!;
+      const film = filmRef.current!;
+      const stills = Array.from(
+        film.querySelectorAll<HTMLImageElement>(".preloader__still")
+      );
 
       const reducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
       ).matches;
 
-      // Dev aid: append #slow to the URL to run the sequence at 1/4 speed
       if (window.location.hash.includes("slow")) {
         gsap.globalTimeline.timeScale(0.25);
       }
 
       let cancelled = false;
+      let filmPlaying = false;
+      let docked = false;
 
-      // The frame's open size (CSS sets it; we capture then close it)
-      const openW = frame.offsetWidth;
-      const openH = frame.offsetHeight;
+      const em = () => parseFloat(getComputedStyle(word).fontSize) || 16;
+
+      const sizeOf = (i: number) => {
+        const px = em();
+        const slot = SLOT_FRAMES[i];
+        return { width: slot.w * px, height: slot.h * px };
+      };
+
       gsap.set(frame, { width: 0, height: 0, marginLeft: 0, marginRight: 0 });
 
+      const showStill = (index: number, animateSize: boolean) => {
+        stills.forEach((el, i) => {
+          el.style.opacity = i === index ? "1" : "0";
+        });
+        const size = sizeOf(index);
+        if (animateSize) {
+          gsap.to(frame, {
+            ...size,
+            duration: FRAME_S,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+        } else {
+          gsap.set(frame, size);
+        }
+      };
+
+      const playFilm = (onComplete?: () => void) => {
+        if (filmPlaying) return;
+        filmPlaying = true;
+        const first = sizeOf(0);
+        gsap.set(frame, { autoAlpha: 1 });
+        showStill(0, false);
+        const tl = gsap.timeline({
+          onComplete: () => {
+            filmPlaying = false;
+            onComplete?.();
+          },
+        });
+        tl.to(frame, {
+          width: first.width,
+          height: first.height,
+          marginLeft: "0.14em",
+          marginRight: "0.14em",
+          duration: 0.34,
+          ease: "expo.out",
+        });
+        for (let i = 1; i < SLOT_FRAMES.length; i++) {
+          tl.add(() => showStill(i, true), `+=${STILL_S}`);
+        }
+        tl.to(
+          frame,
+          {
+            width: 0,
+            height: 0,
+            marginLeft: 0,
+            marginRight: 0,
+            duration: 0.42,
+            ease: "expo.inOut",
+          },
+          `+=${STILL_S}`
+        );
+      };
+
       const dockTransform = () => {
-        // From viewport centre to bottom-centre, shrunk to signature size
         const fontPx = parseFloat(getComputedStyle(word).fontSize);
         const scale = dockFontPx() / fontPx;
         const rect = word.getBoundingClientRect();
@@ -78,31 +145,92 @@ export default function Preloader({
         return { y: targetY - centerY, scale };
       };
 
+      const restCenter = () => {
+        const scale = Number(gsap.getProperty(word, "scale")) || 1;
+        const h = word.offsetHeight * scale;
+        return {
+          x: window.innerWidth / 2,
+          y: window.innerHeight - dockBottomPx() - h / 2,
+        };
+      };
+
+      const onMagnet = (e: PointerEvent) => {
+        if (!docked || reducedMotion) return;
+        const rest = restCenter();
+        const dx = e.clientX - rest.x;
+        const dy = e.clientY - rest.y;
+        const d = Math.hypot(dx, dy);
+        if (d > MAGNET_R) {
+          gsap.to(word, {
+            x: 0,
+            y: 0,
+            duration: 0.55,
+            ease: "power3.out",
+            overwrite: "auto",
+          });
+          return;
+        }
+        const f = (1 - d / MAGNET_R) * MAGNET_PULL;
+        gsap.to(word, {
+          x: dx * f,
+          y: dy * f,
+          duration: 0.28,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+      };
+
+      const onEnter = () => {
+        if (!docked) return;
+        gsap.to(word, {
+          scale: HOVER_SCALE,
+          duration: 0.4,
+          ease: "power3.out",
+          overwrite: false,
+        });
+        if (!reducedMotion) playFilm();
+      };
+
+      const onLeave = () => {
+        if (!docked) return;
+        gsap.to(word, {
+          x: 0,
+          y: 0,
+          scale: 1,
+          duration: 0.5,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+      };
+
+      const bindDock = () => {
+        docked = true;
+        gsap.set(word, {
+          xPercent: -50,
+          x: 0,
+          y: 0,
+          scale: 1,
+          transformOrigin: "50% 100%",
+        });
+        window.addEventListener("pointermove", onMagnet);
+        word.addEventListener("pointerenter", onEnter);
+        word.addEventListener("pointerleave", onLeave);
+      };
+
       const finish = () => {
         sessionStorage.setItem(SEEN_KEY, "1");
         root.classList.add("preloader--done");
-        // CSS owns the docked position from here (fixed bottom-centre,
-        // safe-area aware, resize-proof) — drop the animation transform
         gsap.set(word, { clearProps: "transform,scale" });
+        bindDock();
         onDone();
       };
 
       const run = async () => {
-        // Wait for the serif so the wordmark doesn't swap mid-animation
-        await Promise.race([
-          document.fonts.ready,
-          new Promise((r) => setTimeout(r, 1500)),
-        ]);
-        if (cancelled) return;
-
-        // Already seen this session → skip straight to the docked state.
-        // (#loader in the URL forces a full replay, for design review.)
         const seen =
           sessionStorage.getItem(SEEN_KEY) === "1" &&
           !window.location.hash.includes("loader");
         if (seen) {
-          const { y, scale } = dockTransform();
-          gsap.set(word, { autoAlpha: 1, y, scale, color: INK });
+          gsap.set(word, { autoAlpha: 1, color: INK });
           gsap.set(bg, { autoAlpha: 0 });
           finish();
           return;
@@ -119,65 +247,39 @@ export default function Preloader({
           return;
         }
 
-        const tl = gsap.timeline();
-        const meter = { v: 0 };
-
-        // ---- 1. Wordmark loads in, closed
-        tl.fromTo(
+        const wordIn = gsap.fromTo(
           word,
           { autoAlpha: 0, y: 18 },
-          { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out" }
+          { autoAlpha: 1, y: 0, duration: 0.42, ease: "power3.out" }
         );
 
-        // ---- 2. The () expands…
-        tl.to(frame, {
-          width: openW,
-          height: openH,
-          marginLeft: "0.14em",
-          marginRight: "0.14em",
-          duration: 0.85,
-          ease: "expo.inOut",
-          onStart: () => gsap.set(frame, { autoAlpha: 1 }),
-        }, "+=0.15");
+        await Promise.all([document.fonts.ready, waitForSlots(), wordIn]);
+        if (cancelled) return;
 
-        // ---- 3. …and the load runs 0 → 100 between the parens
-        tl.to(meter, {
-          v: 100,
-          duration: COUNT_S,
-          ease: "power1.inOut",
-          onUpdate: () => {
-            count.textContent = String(Math.round(meter.v));
-          },
-        }, "-=0.35");
-
-        // ---- 4. Collapse shut
-        tl.to(frame, {
-          width: 0,
-          height: 0,
-          marginLeft: 0,
-          marginRight: 0,
-          duration: 0.9,
-          ease: "expo.inOut",
-        }, "+=0.3");
-
-        // ---- 5. Slide to bottom-centre and stay; the page morphs to
-        //         white and the wordmark to black as it settles
-        tl.add(() => {
+        playFilm(() => {
+          if (cancelled) return;
           const { y, scale } = dockTransform();
           gsap
             .timeline({ onComplete: finish })
             .to(word, { y, scale, duration: 1.15, ease: "expo.inOut" }, 0)
-            .to(bg, { backgroundColor: PAPER, duration: 0.9, ease: "power2.inOut" }, 0.2)
+            .to(
+              bg,
+              { backgroundColor: PAPER, duration: 0.9, ease: "power2.inOut" },
+              0.2
+            )
             .to(word, { color: INK, duration: 0.9, ease: "power2.inOut" }, 0.2)
-            // bg and page are now the same white — drop the cover invisibly
             .to(bg, { autoAlpha: 0, duration: 0.01 });
-        }, "+=0.35");
+        });
       };
 
       run();
 
       return () => {
         cancelled = true;
+        docked = false;
+        window.removeEventListener("pointermove", onMagnet);
+        word.removeEventListener("pointerenter", onEnter);
+        word.removeEventListener("pointerleave", onLeave);
       };
     },
     { scope: rootRef }
@@ -190,14 +292,24 @@ export default function Preloader({
         type="button"
         className="preloader__word"
         ref={wordRef}
-        aria-label="the craft commons — home"
+        aria-label="the craft commons - home"
         onClick={onHome}
       >
         <span className="preloader__half">the craft c(</span>
         <div className="preloader__frame" ref={frameRef}>
-          <span className="preloader__count" ref={countRef}>
-            0
-          </span>
+          <div className="preloader__film" ref={filmRef} aria-hidden="true">
+            {SLOT_FRAMES.map((slot, i) => (
+              <img
+                key={slot.src}
+                className="preloader__still"
+                src={slot.src}
+                alt=""
+                draggable={false}
+                fetchPriority={i < 6 ? "high" : "low"}
+                decoding="async"
+              />
+            ))}
+          </div>
         </div>
         <span className="preloader__half">)mmons</span>
       </button>

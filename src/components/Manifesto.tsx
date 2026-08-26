@@ -1,80 +1,229 @@
-import PatternField from "./PatternField.tsx";
+import { useEffect, useRef, type RefObject } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { paintDither } from "../lib/dither.ts";
+import Signature from "./Signature.tsx";
 
-/** The manifesto: a tactile card floating on the full reactive pattern. */
+gsap.registerPlugin(useGSAP);
+
+const DITHER_CELL = 4;
+const OPEN_S = 0.46;
+const CLOSE_S = 0.4;
+
+/** a note that dithers open from the centre. */
 export default function Manifesto({
-  onBack,
-  active,
+  open,
+  onClose,
+  originRef,
 }: {
-  onBack: () => void;
-  active: boolean;
+  open: boolean;
+  onClose: () => void;
+  originRef: RefObject<HTMLButtonElement | null>;
 }) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const ditherRef = useRef<HTMLCanvasElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const mountedRef = useRef(false);
+
+  useGSAP(
+    () => {
+      const overlay = overlayRef.current!;
+      gsap.set(overlay, { autoAlpha: 0 });
+    },
+    { scope: overlayRef }
+  );
+
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    const sheet = sheetRef.current;
+    const canvas = ditherRef.current;
+    const close = closeRef.current;
+    if (!overlay || !sheet || !canvas || !close) return;
+
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const sizeCanvas = () => {
+      const w = Math.max(1, Math.round(sheet.clientWidth / DITHER_CELL));
+      const h = Math.max(1, Math.round(sheet.clientHeight / DITHER_CELL));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+    };
+
+    const NONE = "linear-gradient(#0000, #0000)";
+
+    const maskUrl = (image: string) => {
+      sheet.style.webkitMaskImage = image;
+      sheet.style.webkitMaskSize = "100% 100%";
+      sheet.style.webkitMaskRepeat = "no-repeat";
+      sheet.style.maskImage = image;
+      sheet.style.maskSize = "100% 100%";
+      sheet.style.maskRepeat = "no-repeat";
+    };
+
+    const clearMask = () => {
+      sheet.style.webkitMaskImage = "";
+      sheet.style.maskImage = "";
+      sheet.classList.add("manifesto__sheet--resolved");
+    };
+
+    const applyMask = (p: number) => {
+      sizeCanvas();
+      const v = Math.max(0, Math.min(1, p));
+      paintDither(ctx, canvas.width, canvas.height, v);
+      sheet.classList.remove("manifesto__sheet--resolved");
+      if (v <= 0) {
+        maskUrl(NONE);
+        return;
+      }
+      maskUrl(`url(${canvas.toDataURL("image/png")})`);
+    };
+
+    tlRef.current?.kill();
+
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      if (!open) return;
+    }
+
+    if (open) {
+      const tl = gsap.timeline({
+        onComplete: () => closeRef.current?.focus(),
+      });
+      tlRef.current = tl;
+      gsap.set(overlay, { autoAlpha: 1, pointerEvents: "auto" });
+
+      if (reduced) {
+        clearMask();
+        closeRef.current?.focus();
+        return;
+      }
+
+      const meter = { p: 0 };
+      applyMask(0);
+      tl.to(meter, {
+        p: 1,
+        duration: OPEN_S,
+        ease: "power2.inOut",
+        onUpdate: () => applyMask(meter.p),
+      });
+      tl.add(clearMask);
+    } else {
+      const tl = gsap.timeline({
+        onComplete: () => originRef.current?.focus(),
+      });
+      tlRef.current = tl;
+
+      if (reduced) {
+        clearMask();
+        gsap.set(overlay, { autoAlpha: 0, pointerEvents: "none" });
+        return;
+      }
+
+      const meter = { p: 1 };
+      applyMask(1);
+      tl.to(meter, {
+        p: 0,
+        duration: CLOSE_S,
+        ease: "power2.inOut",
+        onUpdate: () => applyMask(meter.p),
+      });
+      tl.set(overlay, { autoAlpha: 0, pointerEvents: "none" });
+    }
+
+    return () => {
+      tlRef.current?.kill();
+    };
+  }, [open, originRef]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   return (
-    <div className="apply manifesto">
-      <PatternField active={active} variant="full" />
+    <div
+      className="manifesto-overlay manifesto"
+      ref={overlayRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="manifesto-title"
+      aria-hidden={!open}
+      onClick={onClose}
+    >
+      <div
+        className="manifesto__inner"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="manifesto__sheet" ref={sheetRef}>
+          <article className="manifesto__card">
+            <button
+              type="button"
+              className="manifesto__close"
+              ref={closeRef}
+              onClick={onClose}
+              aria-label="close"
+            >
+              close
+            </button>
 
-      <div className="manifesto__inner">
-        <div className="apply__top">
-          <button type="button" className="apply__back" onClick={onBack}>
-            ← Go back
-          </button>
+            <div className="manifesto__body">
+              <p className="manifesto__lede" id="manifesto-title">
+                talent is everywhere. access is not.
+              </p>
+
+              <div className="manifesto__note">
+                <p>
+                  across africa and its diaspora, people are already making
+                  work that deserves to be seen. what is missing is not talent.
+                  it is time. tools. a mentor close enough to care. a door into
+                  the rooms where work becomes opportunity.
+                </p>
+                <p>this is not a giveaway. it is not a bootcamp.</p>
+                <p>
+                  it is a bet. we put tools in a few hands. we sit with them
+                  while they finish. we make sure the work is seen.
+                </p>
+                <p>
+                  great work should be visible. where you were born should not
+                  decide who gets to shape what comes next. african creatives
+                  should not only arrive in this era. they should build inside
+                  it, lead it, and keep what they make.
+                </p>
+                <p>
+                  we start small. three months. a handful of designers. we
+                  learn in public. we refine the model. we build proof.
+                </p>
+                <p>
+                  in time, a network: global work, companies, collaborators.
+                  and one day, the next generation of founders.
+                </p>
+                <p className="manifesto__motto">
+                  african-first. globally ambitious.
+                </p>
+              </div>
+
+              <Signature play={open} />
+            </div>
+          </article>
+          <canvas
+            className="manifesto__dither"
+            ref={ditherRef}
+            aria-hidden="true"
+          />
         </div>
-
-        <article className="manifesto__card">
-          <h1 className="manifesto__title">Manifesto</h1>
-
-          <p className="manifesto__lede">
-            Talent is everywhere. Access is not.
-          </p>
-
-          <p>
-            Across Africa and its diaspora, creatives, builders and makers are
-            already making exceptional work. What is often missing is access
-            to the tools, time, mentorship, and global networks needed to turn
-            that craft into meaningful opportunity.
-          </p>
-
-          <p>
-            Craft Commons is our answer to this. We are building a space for
-            people who are ready to make.
-          </p>
-
-          <p>This is not a giveaway, nor is it a bootcamp.</p>
-
-          <p>
-            Craft Commons is a practical bet on creative ambition. We support
-            designers with tools, guidance, accountability, and a platform to
-            share what they build.
-          </p>
-
-          <p>
-            We believe great work should be visible. We believe proximity to
-            opportunity should not determine who gets to shape the future. And
-            we believe African creatives and builders should not only
-            participate in the AI era; they should build within it, lead it,
-            and benefit from it.
-          </p>
-
-          <p>
-            Our first step is simple: fund and mentor a small group of
-            designers to ship meaningful work over three months.
-          </p>
-
-          <p>
-            We will learn publicly. We will refine the model. We will build
-            proof.
-          </p>
-
-          <p>
-            Over time, we want CC to become a network that helps exceptional
-            African and diaspora creatives access global work, build
-            companies, find collaborators, and eventually invest in the next
-            generation of founders.
-          </p>
-
-          <p className="manifesto__motto">African-first. Globally ambitious.</p>
-
-          <p className="manifesto__sig">Clement &amp; ÌníOlúwa</p>
-        </article>
       </div>
     </div>
   );
