@@ -1,8 +1,6 @@
-/** stills that play inside the wordmark during the preloader — African
- *  makers at work (Unsplash, uniform b/w grade + 3:4 crop via CDN params).
- *  Sequenced in three reels: wood & fiber hands, clay & cloth hands, then
- *  makers at work. w/h are em; the film's aperture sizes live in the REELS
- *  table in Preloader.tsx. */
+/** portraits that play inside the wordmark during the preloader.
+ *  w/h are em, relative to the wordmark. heights stay tall and vary
+ *  so the aperture reads as a stack of photographs, not a film slit. */
 export const SLOT_FRAMES = [
   { src: "/slots/01.jpg", w: 2.15, h: 3.85 },
   { src: "/slots/02.jpg", w: 2.35, h: 3.25 },
