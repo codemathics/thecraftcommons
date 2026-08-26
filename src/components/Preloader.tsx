@@ -10,8 +10,17 @@ const PAPER = "#fefefe";
 
 const SEEN_KEY = "cc-preloader-seen"; // full sequence runs once per session
 
-const FRAME_S = 0.08; // height/width morph between stills
 const STILL_S = 0.095; // hold each portrait so every still is readable
+
+/** The film plays in three reels. The aperture keeps ONE size per reel and
+ *  morphs only at reel boundaries — width/height animation forces layout
+ *  (and reflows the wordmark halves), so per-cut morphing reads as jitter.
+ *  Inside a reel, stills hard-cut like a flip-book. Sizes are em. */
+const REELS = [
+  { from: 0, to: 4, w: 2.15, h: 3.85 },
+  { from: 5, to: 9, w: 2.35, h: 3.3 },
+  { from: 10, to: 13, w: 2.55, h: 3.05 },
+] as const;
 const MAGNET_R = 130;
 const MAGNET_PULL = 0.2;
 const HOVER_SCALE = 1.2;
@@ -73,54 +82,56 @@ export default function Preloader({
 
       const em = () => parseFloat(getComputedStyle(word).fontSize) || 16;
 
-      const sizeOf = (i: number) => {
-        const px = em();
-        const slot = SLOT_FRAMES[i];
-        return { width: slot.w * px, height: slot.h * px };
-      };
-
       gsap.set(frame, { width: 0, height: 0, marginLeft: 0, marginRight: 0 });
 
-      const showStill = (index: number, animateSize: boolean) => {
+      /** hard cut — opacity flips only, never size (size belongs to reels) */
+      const showStill = (index: number) => {
         stills.forEach((el, i) => {
           el.style.opacity = i === index ? "1" : "0";
         });
-        const size = sizeOf(index);
-        if (animateSize) {
-          gsap.to(frame, {
-            ...size,
-            duration: FRAME_S,
-            ease: "power2.out",
-            overwrite: "auto",
-          });
-        } else {
-          gsap.set(frame, size);
-        }
       };
 
       const playFilm = (onComplete?: () => void) => {
         if (filmPlaying) return;
         filmPlaying = true;
-        const first = sizeOf(0);
+        const px = em();
         gsap.set(frame, { autoAlpha: 1 });
-        showStill(0, false);
+        showStill(0);
         const tl = gsap.timeline({
           onComplete: () => {
             filmPlaying = false;
             onComplete?.();
           },
         });
-        tl.to(frame, {
-          width: first.width,
-          height: first.height,
-          marginLeft: "0.14em",
-          marginRight: "0.14em",
-          duration: 0.34,
-          ease: "expo.out",
+        REELS.forEach((reel, r) => {
+          if (r === 0) {
+            // opening morph: closed → first reel's aperture
+            tl.to(frame, {
+              width: reel.w * px,
+              height: reel.h * px,
+              marginLeft: "0.14em",
+              marginRight: "0.14em",
+              duration: 0.34,
+              ease: "expo.out",
+            });
+          } else {
+            // one deliberate morph per reel boundary, cutting as it starts
+            tl.to(
+              frame,
+              {
+                width: reel.w * px,
+                height: reel.h * px,
+                duration: 0.2,
+                ease: "power2.inOut",
+              },
+              `+=${STILL_S}`
+            );
+            tl.add(() => showStill(reel.from), "<");
+          }
+          for (let i = reel.from + 1; i <= reel.to; i++) {
+            tl.add(() => showStill(i), `+=${STILL_S}`);
+          }
         });
-        for (let i = 1; i < SLOT_FRAMES.length; i++) {
-          tl.add(() => showStill(i, true), `+=${STILL_S}`);
-        }
         tl.to(
           frame,
           {
