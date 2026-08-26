@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type MutableRefObject } from "react";
 import { INK, HUES, hashCell, makeIconPath } from "../lib/mark.ts";
 
 /** grid pitch — finer on narrow screens so the lace keeps its detail */
@@ -16,14 +16,19 @@ export default function PatternField({
   active,
   variant = "dome",
   onDoor,
+  spreadRef,
 }: {
   active: boolean;
   /** "dome" = the home hero's hanging mass; "full" = edge-to-edge lace */
   variant?: "dome" | "full";
   /** easter egg: one tile is a door — hover reveals it, click opens */
   onDoor?: () => void;
+  /** 0 = hanging dome, 1 = lace fills the page. animated by the parent. */
+  spreadRef?: MutableRefObject<number>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const onDoorRef = useRef(onDoor);
+  onDoorRef.current = onDoor;
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -79,11 +84,12 @@ export default function PatternField({
     const eased = { x: -9999, y: -9999 };
     let dirty = true;
     let raf = 0;
+    let lastSpread = -1;
 
     // The door: one tile of the lace, revealed on hover, opens the manifesto
     const door = { ix: -1, iy: -1, cx: 0, cy: 0, hovered: false };
     const placeDoor = () => {
-      if (!onDoor) return;
+      if (!onDoorRef.current) return;
       const cell = cellFor(w);
       door.ix = Math.round((w * 0.61) / cell);
       door.iy = Math.round((h * 0.44) / cell);
@@ -91,7 +97,7 @@ export default function PatternField({
       door.cy = door.iy * cell;
     };
     const onDoorClick = () => {
-      if (door.hovered && onDoor) onDoor();
+      if (door.hovered && onDoorRef.current) onDoorRef.current();
     };
 
     // Rainbow wave: a single travelling pulse per CTA hover — it sweeps
@@ -124,9 +130,15 @@ export default function PatternField({
      * Density field: 1 deep inside the hanging mass, 0 outside.
      * The mass covers the top and bulges furthest down at the centre.
      */
+    const spread = () =>
+      spreadRef?.current ?? (variant === "full" ? 1 : 0);
+
     const envelope = (x: number) => {
       const nx = (x - w / 2) / (w / 2); // -1..1
-      return h * (0.3 + 0.38 * Math.exp(-2.6 * nx * nx));
+      const dome = h * (0.3 + 0.38 * Math.exp(-2.6 * nx * nx));
+      const full = h * 1.22;
+      const s = spread();
+      return dome + (full - dome) * s;
     };
 
     /**
@@ -206,8 +218,8 @@ export default function PatternField({
 
       const cell = cellFor(w);
       const cols = Math.ceil(w / cell) + 2;
-      const rows =
-        Math.ceil((h * (variant === "full" ? 1 : 0.82)) / cell) + 1;
+      const s = spread();
+      const rows = Math.ceil((h * (0.82 + 0.18 * s)) / cell) + 1;
       const rippleY = ambient ? rippleFront(performance.now()) : null;
 
       for (let iy = 0; iy < rows; iy++) {
@@ -219,10 +231,7 @@ export default function PatternField({
 
           // Signed depth into the mass, jittered so the edge crumbles
           // full variant: uniform edge-to-edge lace; dome: the hanging mass
-          const t =
-            variant === "full"
-              ? 1 + (r - 0.5) * 0.08
-              : (envelope(cx) - cy) / (h * 0.22) + (r - 0.5) * 0.35;
+          const t = (envelope(cx) - cy) / (h * 0.22) + (r - 0.5) * 0.35;
 
           // Boosts only amplify cells that already exist; they fade out
           // just past the pattern's edge so blank space stays blank
@@ -270,12 +279,10 @@ export default function PatternField({
       }
 
       // The door tile, drawn on top: ink until hovered, then a rainbow fleck
-      if (onDoor && door.ix >= 0) {
+      if (onDoorRef.current && door.ix >= 0) {
         const r = hashCell(door.ix, door.iy);
         const t =
-          variant === "full"
-            ? 1 + (r - 0.5) * 0.08
-            : (envelope(door.cx) - door.cy) / (h * 0.22) + (r - 0.5) * 0.35;
+          (envelope(door.cx) - door.cy) / (h * 0.22) + (r - 0.5) * 0.35;
         const s = Math.max(0, Math.min(1, t));
         if (s > 0.02) {
           const size =
@@ -340,8 +347,15 @@ export default function PatternField({
       if (wave.running) dirty = true;
       if (ambient && rippleFront(performance.now()) !== null) dirty = true;
 
+      const sNow = spread();
+      if (Math.abs(sNow - lastSpread) > 0.001) {
+        lastSpread = sNow;
+        buildShapeMask();
+        dirty = true;
+      }
+
       // Door hover: reveal, pointer cursor, hue cycling while held
-      if (onDoor && door.ix >= 0) {
+      if (onDoorRef.current && door.ix >= 0) {
         const cell = cellFor(w);
         const hov =
           Math.abs(mouse.x - door.cx) < cell * 0.95 &&
