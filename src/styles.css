@@ -135,6 +135,9 @@ body {
   object-position: center 30%;
   opacity: 0;
   pointer-events: none;
+  /* own compositor layer — cuts become GPU flips, no main-thread repaint */
+  will-change: opacity;
+  transform: translateZ(0);
 }
 
 /* ---------- Pattern field ---------- */

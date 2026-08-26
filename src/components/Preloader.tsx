@@ -10,7 +10,7 @@ const PAPER = "#fefefe";
 
 const SEEN_KEY = "cc-preloader-seen"; // full sequence runs once per session
 
-const STILL_S = 0.095; // hold each portrait so every still is readable
+const STILL_S = 0.13; // hold each portrait long enough to register (sub-100ms reads as flicker)
 
 /** The film plays in three reels. The aperture keeps ONE size per reel and
  *  morphs only at reel boundaries — width/height animation forces layout
