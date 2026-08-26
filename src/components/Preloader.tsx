@@ -91,7 +91,16 @@ export default function Preloader({
         });
       };
 
-      const playFilm = (onComplete?: () => void) => {
+      /**
+       * One unbroken movement: from the first cut to the collapse something
+       * changes every STILL_S — cuts land on a strict metronome, reel
+       * boundaries glide the aperture within a single beat, and the first
+       * cut arrives while the opening expand is still settling.
+       */
+      const playFilm = (opts?: {
+        onComplete?: () => void;
+        onClosing?: () => void;
+      }) => {
         if (filmPlaying) return;
         filmPlaying = true;
         const px = em();
@@ -100,38 +109,44 @@ export default function Preloader({
         const tl = gsap.timeline({
           onComplete: () => {
             filmPlaying = false;
-            onComplete?.();
+            opts?.onComplete?.();
           },
         });
+        tl.to(
+          frame,
+          {
+            width: REELS[0].w * px,
+            height: REELS[0].h * px,
+            marginLeft: "0.14em",
+            marginRight: "0.14em",
+            duration: 0.3,
+            ease: "expo.out",
+          },
+          0
+        );
+        let t = 0.17; // first cut lands inside the expand's settle
         REELS.forEach((reel, r) => {
-          if (r === 0) {
-            // opening morph: closed → first reel's aperture
-            tl.to(frame, {
-              width: reel.w * px,
-              height: reel.h * px,
-              marginLeft: "0.14em",
-              marginRight: "0.14em",
-              duration: 0.34,
-              ease: "expo.out",
-            });
-          } else {
-            // one deliberate morph per reel boundary, cutting as it starts
+          if (r > 0) {
+            // boundary morph occupies exactly one beat — the rhythm never breaks
+            tl.add(() => showStill(reel.from), t);
             tl.to(
               frame,
               {
                 width: reel.w * px,
                 height: reel.h * px,
-                duration: 0.2,
-                ease: "power2.inOut",
+                duration: STILL_S,
+                ease: "power1.inOut",
               },
-              `+=${STILL_S}`
+              t
             );
-            tl.add(() => showStill(reel.from), "<");
+            t += STILL_S;
           }
           for (let i = reel.from + 1; i <= reel.to; i++) {
-            tl.add(() => showStill(i), `+=${STILL_S}`);
+            tl.add(() => showStill(i), t);
+            t += STILL_S;
           }
         });
+        if (opts?.onClosing) tl.add(opts.onClosing, t);
         tl.to(
           frame,
           {
@@ -142,7 +157,7 @@ export default function Preloader({
             duration: 0.42,
             ease: "expo.inOut",
           },
-          `+=${STILL_S}`
+          t
         );
       };
 
@@ -151,8 +166,11 @@ export default function Preloader({
         const scale = dockFontPx() / fontPx;
         const rect = word.getBoundingClientRect();
         const centerY = rect.top + rect.height / 2;
+        // measure text height from a half, not the word box — the open
+        // aperture inflates the box, and dock can start mid-collapse
+        const textH = word.querySelector(".preloader__half")!.getBoundingClientRect().height;
         const targetY =
-          window.innerHeight - dockBottomPx() - (rect.height * scale) / 2;
+          window.innerHeight - dockBottomPx() - (textH * scale) / 2;
         return { y: targetY - centerY, scale };
       };
 
@@ -201,6 +219,7 @@ export default function Preloader({
         });
         if (!reducedMotion) playFilm();
       };
+      // (docked hover replay uses the same continuous film)
 
       const onLeave = () => {
         if (!docked) return;
@@ -258,17 +277,24 @@ export default function Preloader({
           return;
         }
 
-        const wordIn = gsap.fromTo(
+        gsap.fromTo(
           word,
           { autoAlpha: 0, y: 18 },
           { autoAlpha: 1, y: 0, duration: 0.42, ease: "power3.out" }
         );
 
-        await Promise.all([document.fonts.ready, waitForSlots(), wordIn]);
+        // start the film inside the fade's settle — assets gate, motion doesn't
+        await Promise.all([
+          document.fonts.ready,
+          waitForSlots(),
+          new Promise((r) => setTimeout(r, 260)),
+        ]);
         if (cancelled) return;
 
-        playFilm(() => {
-          if (cancelled) return;
+        let dockStarted = false;
+        const startDock = () => {
+          if (cancelled || dockStarted) return;
+          dockStarted = true;
           const { y, scale } = dockTransform();
           gsap
             .timeline({ onComplete: finish })
@@ -280,7 +306,10 @@ export default function Preloader({
             )
             .to(word, { color: INK, duration: 0.9, ease: "power2.inOut" }, 0.2)
             .to(bg, { autoAlpha: 0, duration: 0.01 });
-        });
+        };
+
+        // dock begins as the aperture starts closing — one continuous gesture
+        playFilm({ onClosing: startDock });
       };
 
       run();
