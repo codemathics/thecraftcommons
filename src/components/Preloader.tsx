@@ -305,7 +305,8 @@ export default function Preloader({
                 src={slot.src}
                 alt=""
                 draggable={false}
-                fetchPriority={i < 6 ? "high" : "low"}
+                // React 18 DOM props are lowercase; fetchPriority warns
+                {...{ fetchpriority: i < 6 ? "high" : "low" }}
                 decoding="async"
               />
             ))}
