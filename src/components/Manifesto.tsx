@@ -200,9 +200,9 @@ export default function Manifesto({
                 </p>
                 <p>
                   African creatives should thrive in this era; they should
-                  build inside it and lead it. So, we start small for three
-                  months with a handful of designers. We will learn in public,
-                  refine the model and build proof.
+                  build inside it, lead it, and keep what they make. So, we
+                  start small for three months with a handful of designers. We
+                  will learn in public, refine the model and build proof.
                 </p>
                 <p>
                   In time, this will evolve into a network of creatives,
