@@ -631,14 +631,24 @@ body {
   font-size: 1rem;
 }
 
-.step__hint {
-  font-size: 0.82rem;
-  opacity: 0.45;
+.step__next {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
 }
 
-.step__hint strong {
-  font-weight: 400;
-  opacity: 0.9;
+/* Enter keycap nested inside the Next button */
+.step__key {
+  font-family: var(--font-copy);
+  font-size: 0.72em;
+  line-height: 1;
+  padding: 0.28em 0.5em;
+  border: 1px solid rgba(12, 11, 9, 0.22);
+  border-bottom-width: 2px; /* keycap depth */
+  border-radius: 6px;
+  background: rgba(12, 11, 9, 0.035);
+  color: inherit;
+  opacity: 0.75;
 }
 
 .field {

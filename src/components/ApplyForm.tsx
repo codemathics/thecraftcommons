@@ -796,12 +796,12 @@ export default function ApplyForm({
                   type="submit"
                 >
                   {isLast ? (submitting ? "Sending…" : "Apply") : "Next"}
+                  {!submitting && (
+                    <kbd className="step__key" aria-hidden="true">
+                      ↵
+                    </kbd>
+                  )}
                 </button>
-                {!isLast && (
-                  <span className="step__hint">
-                    press <strong>Enter ↵</strong>
-                  </span>
-                )}
               </div>
             </div>
           </form>
