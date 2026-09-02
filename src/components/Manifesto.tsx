@@ -187,31 +187,30 @@ export default function Manifesto({
               <div className="manifesto__note">
                 <p>
                   Across Africa and its diaspora, people are already making
-                  work that deserves to be seen. What is missing is not talent.
-                  It is time. Tools. A mentor close enough to care. A door into
-                  the rooms where work becomes opportunity.
-                </p>
-                <p>This is not a giveaway. It is not a bootcamp.</p>
-                <p>
-                  It is a bet. We put tools in a few hands. We sit with them
-                  while they finish. We make sure the work is seen.
+                  work that deserves to be seen. What is missing is not talent
+                  but time, tools, a mentor close enough to care, and a door
+                  into rooms where the work can turn into opportunities.
                 </p>
                 <p>
-                  Great work should be visible. Where you were born should not
-                  decide who gets to shape what comes next. African creatives
-                  should not only arrive in this era. They should build inside
-                  it, lead it, and keep what they make.
+                  This is not a giveaway, nor is it a bootcamp. This is a bet
+                  we are taking. We will put tools in a few hands. Sit with
+                  them while they finish and make sure the work is seen. Great
+                  work deserves to be visible, and where you were born should
+                  not decide who gets to shape what comes next.
                 </p>
                 <p>
-                  We start small. Three months. A handful of designers. We
-                  learn in public. We refine the model. We build proof.
+                  African creatives should thrive in this era; they should
+                  build inside it and lead it. So, we start small for three
+                  months with a handful of designers. We will learn in public,
+                  refine the model and build proof.
                 </p>
                 <p>
-                  In time, a network: global work, companies, collaborators.
-                  And one day, the next generation of founders.
+                  In time, this will evolve into a network of creatives,
+                  global companies, and collaborators. And someday soon, the
+                  next generation of founders.
                 </p>
                 <p className="manifesto__motto">
-                  African-first. Globally ambitious.
+                  African-first, globally ambitious.
                 </p>
               </div>
 
