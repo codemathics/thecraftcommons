@@ -241,13 +241,13 @@ const STEPS: StepDef[] = [
   { key: "email", section: "Who you are", valid: (d) => emailOk(d.email), error: "That email doesn't look right." },
   { key: "country", section: "Who you are", valid: (d) => d.country.trim().length > 1, error: "Which country are you in?" },
   { key: "experience", section: "Who you are", valid: (d) => d.experience !== "", error: "Pick the closest one." },
-  { key: "makes", section: "What you make", valid: (d) => d.makes.length > 0 && (!d.makes.includes("Other") || d.makesOther.trim() !== ""), error: "Pick at least one — or tell us in your own words." },
+  { key: "makes", section: "What you make", valid: (d) => d.makes.length > 0 && (!d.makes.includes("Other") || d.makesOther.trim() !== ""), error: "Pick at least one, or tell us in your own words." },
   { key: "workLink", section: "What you make", valid: (d) => d.workLink.trim().length > 3, error: "A link helps us see your work." },
-  { key: "mainTools", section: "What you make", valid: (d) => d.mainTools.length > 0 && (!d.mainTools.includes("Other") || d.mainToolOther.trim() !== ""), error: "Pick at least one — or name it." },
+  { key: "mainTools", section: "What you make", valid: (d) => d.mainTools.length > 0 && (!d.mainTools.includes("Other") || d.mainToolOther.trim() !== ""), error: "Pick at least one, or name it." },
   { key: "figmaEdu", section: "What you make", valid: (d) => d.figmaEdu !== "", error: "Not sure is a fine answer.", when: (d) => d.mainTools.includes("Figma") },
   { key: "aiTools", section: "What you make", valid: (d) => d.aiTools.length > 0, error: "Pick at least one." },
-  { key: "aiMade", section: "What you make", valid: (d) => d.aiMade.trim().length > 3, error: "A line is enough — even “nothing yet, but here's what I'd try”." },
-  { key: "make3mo", section: "The ask", valid: (d) => d.make3mo.trim().length > 20, error: "Give us a little more — this is the question that matters." },
+  { key: "aiMade", section: "What you make", valid: (d) => d.aiMade.trim().length > 3, error: "A line is enough. Even “nothing yet, but here's what I'd try” counts." },
+  { key: "make3mo", section: "The ask", valid: (d) => d.make3mo.trim().length > 20, error: "Give us a little more. This is the question that matters." },
   { key: "stopping", section: "The ask", valid: (d) => d.stopping.trim().length > 10, error: "Honest and short is perfect." },
   { key: "commit", section: "The ask", valid: (d) => d.commit, error: "The program only works if you're in." },
 ];
@@ -393,7 +393,7 @@ export default function ApplyForm({
     if (error) {
       setSubmitting(false);
       setSubmitError(
-        "That didn't send. Your answers are saved — try again in a moment."
+        "That didn't send. Your answers are saved, so try again in a moment."
       );
       return;
     }
@@ -555,7 +555,7 @@ export default function ApplyForm({
         return (
           <>
             <span className="field__hint">
-              Select all that apply — this shapes the rest of the form.
+              Select all that apply. This shapes the rest of the form.
             </span>
             <div className="chips">
               {MAKES.map((o) => (
@@ -584,7 +584,7 @@ export default function ApplyForm({
         return (
           <>
             <span className="field__hint">
-              Portfolio, Behance, GitHub, a Figma file — anything you're proud
+              Portfolio, Behance, GitHub, or a Figma file. Anything you're proud
               of.
             </span>
             <span className="field__control">
@@ -681,7 +681,7 @@ export default function ApplyForm({
         return (
           <>
             <span className="field__hint">
-              Projects, experiments, or nothing yet — beginners are welcome.
+              Projects, experiments, or nothing yet. Beginners are welcome.
               If you're just starting, tell us what you'd like to try.
             </span>
             <span className="field__control field__control--area">
@@ -691,7 +691,7 @@ export default function ApplyForm({
                 autoFocus
                 value={d.aiMade}
                 onChange={(e) => set("aiMade", e.target.value)}
-                placeholder="A project, an experiment — or what you'd like to make first."
+                placeholder="A project, an experiment, or what you'd like to make first."
               />
             </span>
             <span className="field__count">{d.aiMade.length}/800</span>
@@ -707,7 +707,7 @@ export default function ApplyForm({
                 autoFocus
                 value={d.make3mo}
                 onChange={(e) => set("make3mo", e.target.value)}
-                placeholder="Be specific — what is it, who is it for, what would exist at the end?"
+                placeholder="Be specific. What is it, who is it for, and what would exist at the end?"
               />
             </span>
             <span className="field__count">{d.make3mo.length}/800</span>
@@ -723,7 +723,7 @@ export default function ApplyForm({
                 autoFocus
                 value={d.stopping}
                 onChange={(e) => set("stopping", e.target.value)}
-                placeholder="Honest answers help — tools, money, time, access, feedback…"
+                placeholder="Honest answers help: tools, money, time, access, feedback…"
               />
             </span>
             <span className="field__count">{d.stopping.length}/400</span>
@@ -765,11 +765,11 @@ export default function ApplyForm({
           <div className="apply__thanks">
             <h1>Application received.</h1>
             <p>
-              Thank you — we read every application. You'll hear from us by
+              Thank you. We read every application. You'll hear from us by
               email about the inaugural cohort.
             </p>
             <p className="apply__thanks-manifesto">
-              While you wait —{" "}
+              While you wait,{" "}
               <button type="button" onClick={onManifesto}>
                 read the Manifesto
               </button>

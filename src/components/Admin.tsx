@@ -59,7 +59,7 @@ const RUBRIC = [
   {
     key: "ambition",
     label: "Ambition",
-    hint: "The three-month answer — is it worth finishing?",
+    hint: "The three-month answer. Is it worth finishing?",
   },
   {
     key: "craft_evidence",
@@ -143,7 +143,7 @@ function Login() {
         </button>
       </form>
       <p className="admin__note">
-        Accounts are created by hand — there is no sign-up.
+        Accounts are created by hand. There is no sign-up.
       </p>
     </div>
   );
@@ -373,7 +373,7 @@ function ReviewCard({
               rows={3}
               disabled={locked}
               value={notes}
-              placeholder="Optional — for you and the other reviewer."
+              placeholder="Optional. For you and the other reviewer."
               onChange={(e) => setNotes(e.target.value)}
             />
           </span>
@@ -481,7 +481,7 @@ function Console({ session }: { session: Session }) {
           {list.length === 0 && (
             <p className="admin__note">
               {tab === "queue"
-                ? "Queue clear — nothing left to score."
+                ? "Queue clear. Nothing left to score."
                 : "Nothing scored yet."}
             </p>
           )}

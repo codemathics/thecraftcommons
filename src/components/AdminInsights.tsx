@@ -111,7 +111,7 @@ export default function AdminInsights() {
       <div className="insights__grid">
         <Bars
           title="Discipline"
-          note="What applicants make — multiple answers allowed."
+          note="What applicants make. Multiple answers allowed."
           data={data.makes}
           total={t}
         />
